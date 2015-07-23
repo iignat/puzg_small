@@ -193,6 +193,7 @@ void loop() {
       if(strInUse==0) {
         lcd.setCursor(0, 0);
         lcd.print("                ");
+        signal_oper_update_cnt=0;
       }
     }
     ClearSerial();
@@ -207,8 +208,8 @@ void loop() {
   text=" ";
   if(curr_state==SET_OSNOVNAYA || curr_state==SET_GENERATORA || curr_state==FORCE_GENERATOR ||  curr_state==FORCE_OSNOVNAYA || curr_state==FORCE_NOPOWER || curr_state==OSHIBKA_ZAPUSKA) {
     val=getTextMessage(&phone,&text);  
-      if(val==-1) {
-          strInUse=50;
+      strInUse=20;
+      if(val==-1){
           lcd.setCursor(0, 0);
           lcd.print("                ");
           lcd.setCursor(0, 0);
@@ -246,7 +247,6 @@ void loop() {
                  sendTextMessage(String(COMMAND_PHONE),"Nevernaya kommanda");
              } 
           }else {
-            strInUse=50;
             lcd.setCursor(0, 0);
             lcd.print("                ");
             lcd.setCursor(0, 0);
