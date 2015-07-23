@@ -1,6 +1,6 @@
 
 #include <Arduino.h>
-#include "puzg.h"
+#include "puzgfnc.h"
 
 byte curr_state=0;
 byte zapusk_delay=0;

@@ -2,13 +2,17 @@
 #include <Arduino.h>
 #include <string.h>
 
-String ClearSerial() {
-  String currStr="";  
-  char a;
-  while(Serial.available())
-     a=Serial.read();
-     currStr+=a;
-  return currStr;
+void ClearSerial() {
+  while(Serial.available())Serial.read();
+}
+
+
+void wait(const unsigned int w) {
+  unsigned int i=0;
+  while(!Serial.available() && i<w){
+    delay(10);
+    i++;
+  }
 }
 
 String getLine(uint8_t w) {
@@ -40,8 +44,7 @@ String getLine(uint8_t w) {
         currStr+=String(currSymb);
         
       }
-      delay(100);
-      
+      //delay(100);
     }
     return currStr;
 }
@@ -91,47 +94,46 @@ void printError(String *s) {
 void sendTextMessage(String phnum,String msg) {
           
     // Устанавливает текстовый режим для SMS-сообщений
-    send("AT+CMGF=1\r");
-   
-    send("AT + CMGS = \""+phnum+"\"\r");
+    Serial.println("AT+CMGF=1");
+    Serial.flush();
+    delay(300);
+    Serial.println("AT+CMGS=\""+phnum+"\"");
+    Serial.flush();
+    delay(300);
     //delay(100);
     // Пишем текст сообщения
-    send(msg);
+    Serial.println(msg);
+    Serial.flush();
+    delay(300);
     // Отправляем Ctrl+Z, обозначая, что сообщение готово
     Serial.print((char)26);
     ClearSerial();
 //    send("\26");
 }
 
-char balans(String *ans) {
-//  return 0;
-  int i=0,j=0,k=0;
-  char res=0;
-  String s="";
-  Serial.println("ATD*100#");  
-  Serial.flush();
-  while(i<10) {
-    delay(1000);
-    s=getLine(10);
-    
-    if(s.substring(0,8)==String("+CUSD: 4")){
-      res=-1;
-      break;
-    }else if(s.substring(0,5)==String("+CUSD")){
-      j=s.indexOf(",\"");
-      k=s.indexOf("\",",j+1);
-      ans[0]=s.substring(j+2,k-1);
-      res=1;
-      break;
-    }
-    i++;
-  }
+int balans(String *ans) {
+  String str="";
+  int i=0,j=0;
   ClearSerial();
-  return res;
+  Serial.println("AT");
+  Serial.flush();
+  wait(300);
+  str=Serial.readString();
+  ClearSerial();
+  Serial.println("ATD*100#");
+  Serial.flush();
+  delay(5000);
+  wait(300);
+  str=Serial.readString();
+  i=str.indexOf("Balans:");
+  j=str.indexOf("r",i+1);
+  ans[0]=str.substring(i+7,j);
+  if(i<0)return -1;
+  return 1;
 }
 
 char getTextMessage(String *phone,String *text){  
-  String s="",s1="";
+  String s="";
   char res=0;
   unsigned short i,j;
   /*s1="AT+CMGL=\"ALL\"\r";
@@ -145,43 +147,60 @@ char getTextMessage(String *phone,String *text){
   lcd.setCursor(0, 0);
   lcd.print(s.substring(s.length()-14,s.length()));
   */
-  
+  s="";
   Serial.print("AT+CMGR=1\r");
+  Serial.flush();
+  wait(300);
   s=Serial.readString();
+  
   //s.replace("\n","#");
   //s.replace("\r","#");
   s.trim();
+  
+  /*lcd.setCursor(0, 0);
+   lcd.print("                ");
+   lcd.setCursor(0, 0);
+   lcd.print(">");
+   lcd.print(s);
+   delay(3000);
+  */   
+     
   s=s.substring(12,s.length());
   if(s.indexOf("ERROR")>=0)return -1;
   if(s.indexOf("+CMGR:")>=0) {
-    
-    
+     
+     
     i=s.indexOf(",\"");
     j=s.indexOf("\",",i);
     phone[0]=s.substring(i+2,j);
+    
+   /*lcd.setCursor(0, 0);
+   lcd.print("                ");
+   lcd.setCursor(0, 0);
+   lcd.print(">");
+   lcd.print(phone[0]);
+   delay(3000);
+    */
+    
     i=s.indexOf("\r\n");
     //i=s.indexOf("\r\n",i+2);
     j=s.indexOf("\r\n",i+2);
     text[0]=s.substring(i+2,j);
-  
-    /*lcd.setCursor(0, 0);
-    lcd.print("                ");
-    lcd.setCursor(0, 0);
-    lcd.print(phone[0]);
-    delay(3000);
-  
-    lcd.setCursor(0, 0);
-    lcd.print("                ");
-    lcd.setCursor(0, 0);
-    lcd.print(text[0]);
-    delay(3000);
-    */
-    ClearSerial();   
-    Serial.println("AT+CMGD=1,4");  
-    Serial.flush();
-    delay(200);
-    ClearSerial();
-    res=1;
+    s="";
+   /*lcd.setCursor(0, 0);
+   lcd.print("                ");
+   lcd.setCursor(0, 0);
+   lcd.print(">");
+   lcd.print(text[0]);
+   delay(3000);
+   */
+   ClearSerial();   
+   
+   Serial.println("AT+CMGD=1,4");  
+   Serial.flush();
+   delay(200);
+   ClearSerial();
+   res=1;
   }/*else {
     lcd.setCursor(0, 0);
     lcd.print("                ");
