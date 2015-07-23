@@ -29,7 +29,7 @@ byte rusLetterYA[8]= {0x0F,0x11,0x11,0x0F,0x05,0x09,0x11,0};//Я
 int balance_cnt=0;
 String blns_str=""; 
 byte start_err_notification=0;
-
+byte signal_oper_update_cnt=0;
 
 /*void GetHelp(String *text){
   text[0]="";
@@ -116,26 +116,27 @@ void setup() {
   Serial.begin(57600);
   //Serial.begin(19200);
   //Serial.begin(9600);
-  /*while(i>0) {
-    i--;
-    if(send("AT")==String("OK")){
-      lcd.print("SIM OK......");
-      break;
-    }
-    if(i==0){
-      lcd.print("SIM FAILED..");
-      break;
-    }
-    delay(1000);
-  }
-  */
   
-  send("AT");
+  Serial.println("AT");
+  Serial.flush();
+  delay(300);
+  
   //send("ATD*111*6*2#");
-  send("AT+CMGF=1");
-  send("AT+CSCS=\"GSM\"");
-  send("AT+CPMS=\"SM\"");
-  send("AT+CNMI=1,1,0,0,0");
+  Serial.println("AT+CMGF=1");
+  Serial.flush();
+  delay(300);
+  
+  Serial.println("AT+CSCS=\"GSM\"");
+  Serial.flush();
+  delay(300);
+  
+  Serial.println("AT+CPMS=\"SM\"");
+  Serial.flush();
+  delay(300);
+  
+  Serial.println("AT+CNMI=1,1,0,0,0");
+  Serial.flush();
+  delay(300);
   
   lcd.createChar(0, rusLetterSH);      // создаем символ и записываем его в память LCD
   lcd.createChar(1, rusLetterI);
@@ -144,9 +145,6 @@ void setup() {
   lcd.createChar(4, rusLetterP);
   lcd.createChar(5, rusLetterYA);
   lcd.createChar(6, rusLetterGH);
-  
-
-  
   
   pinMode(OSNOVNAYA,INPUT);
   pinMode(GENERATOR,INPUT);
@@ -184,35 +182,22 @@ void loop() {
 /*  
   */
   //lcd.setCursor(0, 0);
-  /*if(curr_state==SET_OSNOVNAYA || curr_state==SET_GENERATORA)
-  if(strInUse==0) {
-    switch (c_step) {
-       case 0:
-           res=send("AT+COPS?",&s);
-           if(res==String("OK")) {
-             updateOper(&s);
-             ErrorMsg(0);
-           } else ErrorMsg();
-           c_step++; 
-           break;
-       case 1:
-           res=send("AT+CSQ",&s);
-           if(res==String("OK")){
-             updateSignal(&s);
-             ErrorMsg(0);
-           }else ErrorMsg();
-            c_step=0;
-       break;
-       default:c_step++;
-    }
-  }else {
-    strInUse--;
+  if(curr_state==SET_OSNOVNAYA || curr_state==SET_GENERATORA || curr_state==FORCE_GENERATOR ||  curr_state==FORCE_OSNOVNAYA || curr_state==FORCE_NOPOWER || curr_state==OSHIBKA_ZAPUSKA) {
     if(strInUse==0) {
-      lcd.setCursor(0, 0);
-      lcd.print("                ");
+      if(signal_oper_update_cnt==0) updateOper();
+          else if(signal_oper_update_cnt==1) updateSignal();
+      signal_oper_update_cnt++;
+      if(signal_oper_update_cnt==30)signal_oper_update_cnt=0;    
+    }else {
+      strInUse--;
+      if(strInUse==0) {
+        lcd.setCursor(0, 0);
+        lcd.print("                ");
+      }
     }
+    ClearSerial();
   }
-  ClearSerial();*/
+  
   if(curr_state==OSHIBKA_ZAPUSKA && start_err_notification==0) {
     start_err_notification++;
     GetCurrInfo(&OtvetSMS);

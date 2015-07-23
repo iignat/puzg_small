@@ -2,6 +2,8 @@
 #include <Arduino.h>
 #include <string.h>
 
+String readBuff="";
+
 void ClearSerial() {
   while(Serial.available())Serial.read();
 }
@@ -14,7 +16,7 @@ void wait(const unsigned int w) {
     i++;
   }
 }
-
+/*
 String getLine(uint8_t w) {
    int8_t n=w;
    uint8_t nb=0;
@@ -63,23 +65,38 @@ String send(const String msg,String *ans, char echo) {
   ClearSerial();
   return s;
 }
-
-void updateOper(String *s) {
-  
-  if(s->substring(0,6)==String("+COPS:"))
+*/
+void updateOper() {
+  byte i=0;
+  Serial.println("AT+COPS?");
+  Serial.flush();
+  readBuff=Serial.readString();
+  if(readBuff.indexOf("+COPS:")>=0 && readBuff.indexOf("OK")>=0)
   {
     lcd.setCursor(0, 0);
-    lcd.print(s->substring(12,s->length()-1));
-  }
+    i=readBuff.indexOf(",\"");
+    lcd.print(readBuff.substring(i+2,readBuff.length()-1));
+    ErrorMsg(0);
+  } else ErrorMsg(1);
+  readBuff="";
+  ClearSerial();
 }
 
-void updateSignal(String *s) {
-  
-  if(s->substring(0,5)==String("+CSQ:"))
+void updateSignal() {
+  byte i=0,j=0;
+  Serial.println("AT+CSQ");
+  Serial.flush();
+  readBuff=Serial.readString();
+  if(readBuff.indexOf("+CSQ:")>=0 && readBuff.indexOf("OK"))
   {
+    i=readBuff.indexOf("+CSQ:");
+    j=readBuff.indexOf(",");
     lcd.setCursor(14, 0);
-    lcd.print(s->substring(6,8));
-  }
+    lcd.print(readBuff.substring(i+5,j));
+    ErrorMsg(0);
+  }else ErrorMsg(1);
+  readBuff="";
+  ClearSerial();
 }
 
 void printError(String *s) {
@@ -112,95 +129,55 @@ void sendTextMessage(String phnum,String msg) {
 }
 
 int balans(String *ans) {
-  String str="";
   int i=0,j=0;
   ClearSerial();
   Serial.println("AT");
   Serial.flush();
   wait(300);
-  str=Serial.readString();
+  readBuff=Serial.readString();
   ClearSerial();
   Serial.println("ATD*100#");
   Serial.flush();
   delay(5000);
   wait(300);
-  str=Serial.readString();
-  i=str.indexOf("Balans:");
-  j=str.indexOf("r",i+1);
-  ans[0]=str.substring(i+7,j);
+  readBuff=Serial.readString();
+  i=readBuff.indexOf("Balans:");
+  j=readBuff.indexOf("r",i+1);
+  ans[0]=readBuff.substring(i+7,j);
+  readBuff="";
   if(i<0)return -1;
   return 1;
 }
 
 char getTextMessage(String *phone,String *text){  
-  String s="";
   char res=0;
   unsigned short i,j;
-  /*s1="AT+CMGL=\"ALL\"\r";
-  Serial.print(s1);  
-  Serial.flush();
-  s=Serial.readString();
-  s.replace("\n","");
-  s.replace("\r","");
-  lcd.setCursor(0, 0);
-  lcd.print("                ");
-  lcd.setCursor(0, 0);
-  lcd.print(s.substring(s.length()-14,s.length()));
-  */
-  s="";
+  readBuff="";
   Serial.print("AT+CMGR=1\r");
   Serial.flush();
   wait(300);
-  s=Serial.readString();
-  
-  //s.replace("\n","#");
-  //s.replace("\r","#");
-  s.trim();
-  
-  /*lcd.setCursor(0, 0);
-   lcd.print("                ");
-   lcd.setCursor(0, 0);
-   lcd.print(">");
-   lcd.print(s);
-   delay(3000);
-  */   
-     
-  s=s.substring(12,s.length());
-  if(s.indexOf("ERROR")>=0)return -1;
-  if(s.indexOf("+CMGR:")>=0) {
-     
-     
-    i=s.indexOf(",\"");
-    j=s.indexOf("\",",i);
-    phone[0]=s.substring(i+2,j);
+  readBuff=Serial.readString();
+  readBuff.trim();   
+  readBuff=readBuff.substring(12,readBuff.length());
+  if(readBuff.indexOf("ERROR")>=0)return -1;
+  if(readBuff.indexOf("+CMGR:")>=0) {
     
-   /*lcd.setCursor(0, 0);
-   lcd.print("                ");
-   lcd.setCursor(0, 0);
-   lcd.print(">");
-   lcd.print(phone[0]);
-   delay(3000);
-    */
-    
-    i=s.indexOf("\r\n");
-    //i=s.indexOf("\r\n",i+2);
-    j=s.indexOf("\r\n",i+2);
-    text[0]=s.substring(i+2,j);
-    s="";
-   /*lcd.setCursor(0, 0);
-   lcd.print("                ");
-   lcd.setCursor(0, 0);
-   lcd.print(">");
-   lcd.print(text[0]);
-   delay(3000);
-   */
-   ClearSerial();   
+    i=readBuff.indexOf(",\"");
+    j=readBuff.indexOf("\",",i);
+    phone[0]=readBuff.substring(i+2,j);
    
-   Serial.println("AT+CMGD=1,4");  
-   Serial.flush();
-   delay(200);
-   ClearSerial();
-   res=1;
+    i=readBuff.indexOf("\r\n");
+    //i=readBuff.indexOf("\r\n",i+2);
+    j=readBuff.indexOf("\r\n",i+2);
+    text[0]=readBuff.substring(i+2,j);
+    readBuff="";
+    ClearSerial();   
+   
+    Serial.println("AT+CMGD=1,4");  
+    Serial.flush();
+    delay(200);
+    ClearSerial();
+    res=1;
   }/*else {
     lcd.setCursor(0, 0);
     lcd.print("                ");
@@ -211,7 +188,6 @@ char getTextMessage(String *phone,String *text){
      
   }*/
  
-  
   return res;
 }
 

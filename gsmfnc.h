@@ -10,8 +10,8 @@ String getLine(uint8_t w);
 
 String send(const String msg,String *ans=0, char echo=1);
 
-void updateOper(String *s);
-void updateSignal(String *s);
+void updateOper();
+void updateSignal();
 void printError(String *s);
 void sendTextMessage(String phnum,String msg);
 char getTextMessage(String *phone,String *text);
