@@ -63,15 +63,15 @@ void GetCurrInfo(String *text){
     text[0]+=s4;
     text[0]+="Regim raboty:";
     switch(curr_state){
-      case 0:text[0]+=s3;break;
-      case 1:text[0]+=s2.substring(0,s2.length()-1);break;
-      case 2:text[0]+=("ZAPUSK"+s2);break;
-      case 3 :text[0]+=("OSHIBKA ZAPUSKA")+s2;break;
-      case 4 :text[0]+=("OTKLUCHENIE")+s2;break;
-      case 5:text[0]+="PROPALA OSNOVNAYA SET'";break;
-      case 6:text[0]+=(s1+"GENERATOR");break;
-      case 7:text[0]+=(s1+"OSNOVNAYA SET'");break;
-      case 8:text[0]+=(s1+"OTKLUCHENIE ENERGII");break;
+      case SET_OSNOVNAYA:text[0]+=s3;break;
+      case SET_GENERATORA:text[0]+=s2.substring(0,s2.length()-1);break;
+      case ZAPUSK_GENERATORA:text[0]+=("ZAPUSK"+s2);break;
+      case OSHIBKA_ZAPUSKA :text[0]+=("OSHIBKA ZAPUSKA")+s2;break;
+      case OSTANOV_GENERATORA :text[0]+=("OTKLUCHENIE")+s2;break;
+      case PROPALA_OSNOVNAYA_SET:text[0]+="PROPALA OSNOVNAYA SET'";break;
+      case FORCE_GENERATOR:text[0]+=(s1+"GENERATOR");break;
+      case FORCE_OSNOVNAYA:text[0]+=(s1+"OSNOVNAYA SET'");break;
+      case FORCE_NOPOWER:text[0]+=(s1+"OTKLUCHENIE ENERGII");break;
       default:text[0]+="NEIZVESTNIY REGIM";break;  
     }  
     text[0]+=s4;
@@ -89,12 +89,13 @@ void printCurState() {
               //lcd.print(blns_str.substring(blns_str.indexOf(":")+1,blns_str.indexOf("r")));
               lcd.print(blns_str);
            else {
-              lcd.print(blns_str);
-              balance_cnt=-100;
+              blns_str="--";
+              balance_cnt=-50;
            }
-           lcd.print("PY");lcd.write(byte(2));lcd.print("     ");
-         }else if(balance_cnt<0)lcd.print(balance_cnt);
+           //lcd.print("PY");lcd.write(byte(2));lcd.print("     ");
+         }//else if(balance_cnt<0)lcd.print(balance_cnt);
          else lcd.print(blns_str);
+         lcd.print("PY");lcd.write(byte(2));lcd.print("     ");
          balance_cnt++;
          if (balance_cnt>BALANS_UPDATE_INTERVAL)balance_cnt=0;  
          break;
@@ -104,6 +105,9 @@ void printCurState() {
      case OSHIBKA_ZAPUSKA:       lcd.print("O");lcd.write(byte(0));lcd.write(byte(1));lcd.write(byte(2));lcd.print("KA CTAPTA   ");break;
      case OSTANOV_GENERATORA:    lcd.print("OCTAHOBKA...    ");break;
      case PROPALA_OSNOVNAYA_SET: lcd.print("HET HA");lcd.write(byte(4));lcd.print("P");lcd.write(byte(5));lcd.write(byte(6));lcd.print("EH");lcd.write(byte(1));lcd.write(byte(5));lcd.print("   ");break;
+     case FORCE_GENERATOR:
+     case FORCE_OSNOVNAYA:
+     case FORCE_NOPOWER:lcd.write(byte(4));lcd.print("P");lcd.write(byte(1));lcd.print("H. PE");lcd.write(byte(6));lcd.write(byte(1));lcd.print("M");break;
    } 
 }
 
@@ -166,7 +170,7 @@ void setup() {
 
 uint8_t c_step=0;
 byte strInUse=0;
-
+byte heartbeat=0;
 void SendCommandComplite() {
     sendTextMessage(String(COMMAND_PHONE),"Kommanda vipolnena");
 }
@@ -183,6 +187,11 @@ void loop() {
 /*  
   */
   //lcd.setCursor(0, 0);
+  lcd.setCursor(13, 0);
+  switch(heartbeat){
+    case 0:lcd.print(" ");heartbeat++;break;
+    case 1:lcd.print("*");heartbeat=0;break;
+  }
   if(curr_state==SET_OSNOVNAYA || curr_state==SET_GENERATORA || curr_state==FORCE_GENERATOR ||  curr_state==FORCE_OSNOVNAYA || curr_state==FORCE_NOPOWER || curr_state==OSHIBKA_ZAPUSKA) {
     if(strInUse==0) {
       if(signal_oper_update_cnt==0){
@@ -190,6 +199,10 @@ void loop() {
         updateOper();
       }
       signal_oper_update_cnt++;
+      //lcd.setCursor(10,0);
+      //lcd.print("  ");
+      //lcd.setCursor(10,0);
+      //lcd.print(signal_oper_update_cnt);
       if(signal_oper_update_cnt==30)signal_oper_update_cnt=0;    
     }else {
       strInUse--;
@@ -210,14 +223,15 @@ void loop() {
   phone=" ";
   text=" ";
   if(curr_state==SET_OSNOVNAYA || curr_state==SET_GENERATORA || curr_state==FORCE_GENERATOR ||  curr_state==FORCE_OSNOVNAYA || curr_state==FORCE_NOPOWER || curr_state==OSHIBKA_ZAPUSKA) {
-    val=getTextMessage(&phone,&text);  
-      strInUse=20;
+      val=getTextMessage(&phone,&text);  
       if(val==-1){
+          strInUse=20;
           lcd.setCursor(0, 0);
           lcd.print("                ");
           lcd.setCursor(0, 0);
           lcd.print("SMS HE ");lcd.write(4);lcd.print("P");lcd.write(1);lcd.print("H");lcd.write(5);lcd.print("TO");
       }else if(val==1) {
+           strInUse=20;
            lcd.setCursor(0, 0);
            lcd.print("                ");
            lcd.setCursor(0, 0);
@@ -250,6 +264,7 @@ void loop() {
                  sendTextMessage(String(COMMAND_PHONE),"Nevernaya kommanda");
              } 
           }else {
+            strInUse=20;
             lcd.setCursor(0, 0);
             lcd.print("                ");
             lcd.setCursor(0, 0);
