@@ -16,56 +16,7 @@ void wait(const unsigned int w) {
     i++;
   }
 }
-/*
-String getLine(uint8_t w) {
-   int8_t n=w;
-   uint8_t nb=0;
-   int i=0,k=0;
-   char currSymb=0,currSymb_last=0;
-   String currStr="";
-   
-   
-    while(n>0) {
-      n--;
-      while(Serial.available()) {
-        //delay(3);
-        currSymb_last=currSymb;
-        currSymb=Serial.read();
-        if( (currSymb=='\r' && currSymb_last=='\n') ||
-            (currSymb=='\n' && currSymb_last=='\r') || 
-            (currSymb==10 && currSymb_last==13) ||
-            (currSymb==13 && currSymb_last==10)
-        ){
-          return currStr;
-        }
-     
-        if(currSymb=='\n')continue;
-        if(currSymb==13)continue;
-        if(currSymb==10)continue;
-        if(currSymb=='\r')continue;
-        currStr+=String(currSymb);
-        
-      }
-      //delay(100);
-    }
-    return currStr;
-}
 
-
-String send(const String msg,String *ans, char echo) {
-  String s="";
-  Serial.println(msg);  
-  Serial.flush();
-  getLine(10);
-  getLine(10);
-  if(ans)ans[0]=getLine(10);
-    else getLine(10);
-  getLine(10);
-  s=getLine(10);
-  ClearSerial();
-  return s;
-}
-*/
 void updateOper() {
   byte i=0;
   Serial.println("AT+COPS?");
@@ -75,7 +26,7 @@ void updateOper() {
   {
     lcd.setCursor(0, 0);
     i=readBuff.indexOf(",\"");
-    lcd.print(readBuff.substring(i+2,readBuff.length()-1));
+    lcd.print(readBuff.substring(i+2,readBuff.length()-9));
     ErrorMsg(0);
   } else ErrorMsg(1);
   readBuff="";
@@ -84,15 +35,16 @@ void updateOper() {
 
 void updateSignal() {
   byte i=0,j=0;
+  readBuff="";
   Serial.println("AT+CSQ");
   Serial.flush();
   readBuff=Serial.readString();
   if(readBuff.indexOf("+CSQ:")>=0 && readBuff.indexOf("OK"))
   {
     i=readBuff.indexOf("+CSQ:");
-    j=readBuff.indexOf(",");
+    j=readBuff.indexOf(",",i+1);
     lcd.setCursor(14, 0);
-    lcd.print(readBuff.substring(i+5,j));
+    lcd.print(readBuff.substring(i+6,j));
     ErrorMsg(0);
   }else ErrorMsg(1);
   readBuff="";

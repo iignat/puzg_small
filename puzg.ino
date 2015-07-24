@@ -43,25 +43,27 @@ byte signal_oper_update_cnt=0;
 void GetCurrInfo(String *text){
     const String s1="PRINUDITELNO ";
     const String s2=" GENERATORA";
+    const String s3="NORMA";
+    const String s4="\r\n";
     
     byte f_osnovnaya=0,f_generator=0;
     f_osnovnaya=digitalRead(OSNOVNAYA);
     f_generator=digitalRead(GENERATOR);  
   
     if(balans(text)!=1)text[0]="Oshibka zaprosa balansa\r\n";
-    else text[0]+="\r\n";
+    else text[0]+=s4;
     text[0]+="Osnovnaya set':";
-    if(f_osnovnaya==1)text[0]+="NORMA";
+    if(f_osnovnaya==1)text[0]+=s3;
     else text[0]+="OTKLUCHENA";
-    text[0]+="\r\n";
+    text[0]+=s4;
     
     text[0]+="Generator:";
-    if(f_generator==1)text[0]+="NORMA";
+    if(f_generator==1)text[0]+=s3;
     else text[0]+="OTKLUCHEN";
-    text[0]+="\r\n";
+    text[0]+=s4;
     text[0]+="Regim raboty:";
     switch(curr_state){
-      case 0:text[0]+="NORMA";break;
+      case 0:text[0]+=s3;break;
       case 1:text[0]+=s2.substring(0,s2.length()-1);break;
       case 2:text[0]+=("ZAPUSK"+s2);break;
       case 3 :text[0]+=("OSHIBKA ZAPUSKA")+s2;break;
@@ -72,7 +74,7 @@ void GetCurrInfo(String *text){
       case 8:text[0]+=(s1+"OTKLUCHENIE ENERGII");break;
       default:text[0]+="NEIZVESTNIY REGIM";break;  
     }  
-    text[0]+="\r\n";
+    text[0]+=s4;
     
 }
 
@@ -112,7 +114,7 @@ void setup() {
   lcd.clear();
   analogWrite(24,30);
   lcd.setCursor(0, 0);
-  lcd.print("Start ...");
+  ///lcd.print("Start ...");
   Serial.begin(57600);
   //Serial.begin(19200);
   //Serial.begin(9600);
@@ -174,7 +176,6 @@ void loop() {
   byte val=0;
   String s="";
   String OtvetSMS="";
-  String res="";
   String phone="",text="";
   unsigned int i=0;
   
@@ -184,8 +185,10 @@ void loop() {
   //lcd.setCursor(0, 0);
   if(curr_state==SET_OSNOVNAYA || curr_state==SET_GENERATORA || curr_state==FORCE_GENERATOR ||  curr_state==FORCE_OSNOVNAYA || curr_state==FORCE_NOPOWER || curr_state==OSHIBKA_ZAPUSKA) {
     if(strInUse==0) {
-      if(signal_oper_update_cnt==0) updateOper();
-          else if(signal_oper_update_cnt==1) updateSignal();
+      if(signal_oper_update_cnt==0){
+        updateSignal();
+        updateOper();
+      }
       signal_oper_update_cnt++;
       if(signal_oper_update_cnt==30)signal_oper_update_cnt=0;    
     }else {
