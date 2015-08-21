@@ -19,6 +19,7 @@ void wait(const unsigned int w) {
 
 void updateOper() {
   byte i=0;
+  byte k=0;
   Serial.println("AT+COPS?");
   Serial.flush();
   readBuff=Serial.readString();
@@ -26,7 +27,9 @@ void updateOper() {
   {
     lcd.setCursor(0, 0);
     i=readBuff.indexOf(",\"");
-    lcd.print(readBuff.substring(i+2,readBuff.length()-9));
+    k=readBuff.indexOf("OK",i+1);
+    //lcd.print(readBuff.substring(i+2,readBuff.length()-9));
+    lcd.print(readBuff.substring(i+2,k-5));
     ErrorMsg(0);
   } else ErrorMsg(1);
   readBuff="";

@@ -23,6 +23,9 @@
 #define START_NUM                    5
 #define FORCE_OSNOVNAYA_SHTD_CNT     3
 #define FORCE_GENERATOR_START_CNT    5
+#define OSTANOV_GENERATORA1_CNT      10
+#define OSTANOV_GENERATORA2_CNT      20
+
 
 extern uint8_t starts_try_num;
 
