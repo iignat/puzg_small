@@ -203,7 +203,7 @@ void loop() {
       //lcd.print("  ");
       //lcd.setCursor(10,0);
       //lcd.print(signal_oper_update_cnt);
-      if(signal_oper_update_cnt==30)signal_oper_update_cnt=0;    
+      if(signal_oper_update_cnt==60)signal_oper_update_cnt=0;    
     }else {
       strInUse--;
       if(strInUse==0) {
@@ -281,14 +281,7 @@ void loop() {
   
   ProcessFunc();
   printCurState();
-  ClearSerial();
-//  val=digitalRead(31);
-//  for(i=16;i<=22;i++){
-//      digitalWrite(i,val);
-//      if(digitalRead(i))lcd.print("1");
-//        else lcd.print("0");
-//  }
-  
+  ClearSerial();  
   delay(1000);
   
    

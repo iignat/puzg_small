@@ -53,7 +53,7 @@ void ProcessFunc() {
     }else force_osnovnaya_cnt=0;
      
     digitalWrite(GENERATOR_SWCH,LOW);    
-    delay(100);
+    delay(OSNOVNAYA_GENERATOR_SWH_DELAY);
     digitalWrite(OSNOVNAYA_SWCH,HIGH);
     
     return;
@@ -80,7 +80,7 @@ void ProcessFunc() {
     }else force_generator_cnt=0;
     
     digitalWrite(OSNOVNAYA_SWCH,LOW);
-    delay(100);
+    delay(OSNOVNAYA_GENERATOR_SWH_DELAY);
     digitalWrite(GENERATOR_SWCH,HIGH);
     return;
   }
@@ -89,16 +89,23 @@ void ProcessFunc() {
   force_generator_cnt=0;
   
   if(f_osnovnaya==1 && f_generator==0){
+      if(curr_state!=SET_OSNOVNAYA) {
+        digitalWrite(GENERATOR_SWCH,LOW);
+        delay(OSNOVNAYA_GENERATOR_SWH_DELAY);
+        digitalWrite(OSNOVNAYA_SWCH,HIGH);
+      }
       curr_state=SET_OSNOVNAYA;
-      digitalWrite(GENERATOR_SWCH,LOW);
-      delay(100);
-      digitalWrite(OSNOVNAYA_SWCH,HIGH);
+      starts_try_num=0;
+      
       
   }else if(f_osnovnaya==0 && f_generator==1){
+      if(curr_state!=SET_GENERATORA) {
+        digitalWrite(OSNOVNAYA_SWCH,LOW);
+        delay(OSNOVNAYA_GENERATOR_SWH_DELAY);
+        digitalWrite(GENERATOR_SWCH,HIGH);
+      }
       curr_state=SET_GENERATORA;
-      digitalWrite(OSNOVNAYA_SWCH,LOW);
-      delay(100);
-      digitalWrite(GENERATOR_SWCH,HIGH);
+      starts_try_num=0;
   } 
    
   if(curr_state==ZAPUSK_GENERATORA){

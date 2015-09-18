@@ -26,6 +26,7 @@
 #define OSTANOV_GENERATORA1_CNT      10
 #define OSTANOV_GENERATORA2_CNT      20
 
+#define OSNOVNAYA_GENERATOR_SWH_DELAY  10000 //ms
 
 extern uint8_t starts_try_num;
 
