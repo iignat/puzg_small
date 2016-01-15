@@ -16,6 +16,7 @@ void printError(String *s);
 void sendTextMessage(String phnum,String msg);
 char getTextMessage(String *phone,String *text);
 int balans(String *ans);
+char getMasterNum(String * ans);
 
 void ErrorMsg(char b=1);
 

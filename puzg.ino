@@ -100,18 +100,19 @@ void printCurState() {
          if (balance_cnt>BALANS_UPDATE_INTERVAL)balance_cnt=0;  
          break;
      }
-     case SET_GENERATORA:        lcd.print("PE3EPB          ");break;
-     case ZAPUSK_GENERATORA:     lcd.print("CTAPT... #");lcd.print(starts_try_num);lcd.print("      ");break;
-     case OSHIBKA_ZAPUSKA:       lcd.print("O");lcd.write(byte(0));lcd.write(byte(1));lcd.write(byte(2));lcd.print("KA CTAPTA   ");break;
-     case OSTANOV_GENERATORA:    lcd.print("OCTAHOBKA...    ");break;
-     case PROPALA_OSNOVNAYA_SET: lcd.print("HET HA");lcd.write(byte(4));lcd.print("P");lcd.write(byte(5));lcd.write(byte(6));lcd.print("EH");lcd.write(byte(1));lcd.write(byte(5));lcd.print("   ");break;
+     case SET_GENERATORA:        lcd.print(F("PE3EPB          "));break;
+     case ZAPUSK_GENERATORA:     lcd.print(F("CTAPT... #"));lcd.print(starts_try_num);lcd.print("      ");break;
+     case OSHIBKA_ZAPUSKA:       lcd.print("O");lcd.write(byte(0));lcd.write(byte(1));lcd.write(byte(2));lcd.print(F("KA CTAPTA   "));break;
+     case OSTANOV_GENERATORA:    lcd.print(F("OCTAHOBKA...    "));break;
+     case PROPALA_OSNOVNAYA_SET: lcd.print(F("HET HA"));lcd.write(byte(4));lcd.print("P");lcd.write(byte(5));lcd.write(byte(6));lcd.print(F("EH"));lcd.write(byte(1));lcd.write(byte(5));lcd.print(F("   "));break;
      case FORCE_GENERATOR:
      case FORCE_OSNOVNAYA:
-     case FORCE_NOPOWER:lcd.write(byte(4));lcd.print("P");lcd.write(byte(1));lcd.print("H. PE");lcd.write(byte(6));lcd.write(byte(1));lcd.print("M");break;
+     case FORCE_NOPOWER:lcd.write(byte(4));lcd.print(F("P"));lcd.write(byte(1));lcd.print(F("H. PE"));lcd.write(byte(6));lcd.write(byte(1));lcd.print("M");break;
    } 
 }
 
 void setup() {
+  String num="";
   byte i=10;
   // set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
@@ -128,19 +129,19 @@ void setup() {
   delay(300);
   
   //send("ATD*111*6*2#");
-  Serial.println("AT+CMGF=1");
+  Serial.println(F("AT+CMGF=1"));
   Serial.flush();
   delay(300);
   
-  Serial.println("AT+CSCS=\"GSM\"");
+  Serial.println(F("AT+CSCS=\"GSM\""));
   Serial.flush();
   delay(300);
   
-  Serial.println("AT+CPMS=\"SM\"");
+  Serial.println(F("AT+CPMS=\"SM\""));
   Serial.flush();
   delay(300);
   
-  Serial.println("AT+CNMI=1,1,0,0,0");
+  Serial.println(F("AT+CNMI=1,1,0,0,0"));
   Serial.flush();
   delay(300);
   
@@ -165,7 +166,17 @@ void setup() {
   //sendTextMessage("+79166076723","Test");
   lcd.clear();
   ClearSerial();
-  
+  lcd.setCursor(0,0);
+  if(getMasterNum(&num)<0) {
+    lcd.print(num);
+  }else {
+    lcd.print(F("Master num:"));
+    lcd.setCursor(0,1);
+    lcd.print(num);
+  }
+  delay(5000);
+  lcd.clear();
+  ClearSerial();  
 }
 
 uint8_t c_step=0;
@@ -268,7 +279,7 @@ void loop() {
             lcd.setCursor(0, 0);
             lcd.print("                ");
             lcd.setCursor(0, 0);
-            lcd.print("HOMEP ");lcd.print("HE");lcd.write(4);lcd.print("P");lcd.print("AB.");
+            lcd.print(F("HOMEP "));lcd.print(F("HE"));lcd.write(4);lcd.print(F("P"));lcd.print(F("AB."));
             delay(3000);
             lcd.setCursor(0, 0);
             lcd.print("                ");
