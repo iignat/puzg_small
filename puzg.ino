@@ -4,7 +4,7 @@
 #include "gsmfnc.h"
 
 #define BALANS_UPDATE_INTERVAL 3600 //sec
-#define COMMAND_PHONE "+79166076723"
+String COMMAND_PHONE ="";
 
 LiquidCrystal lcd(3, 2, 28, 27, 26, 25);
 
@@ -30,6 +30,7 @@ int balance_cnt=0;
 String blns_str=""; 
 byte start_err_notification=0;
 byte signal_oper_update_cnt=0;
+byte gsm_flag=1;
 
 /*void GetHelp(String *text){
   text[0]="";
@@ -83,7 +84,7 @@ void printCurState() {
    switch(curr_state) {
    
      case SET_OSNOVNAYA:{
-         lcd.print("HOPMA ");
+         lcd.print(F("HOPMA "));
          if(balance_cnt==0){
            if(balans(&blns_str)==1)
               //lcd.print(blns_str.substring(blns_str.indexOf(":")+1,blns_str.indexOf("r")));
@@ -95,38 +96,42 @@ void printCurState() {
            //lcd.print("PY");lcd.write(byte(2));lcd.print("     ");
          }//else if(balance_cnt<0)lcd.print(balance_cnt);
          else lcd.print(blns_str);
-         lcd.print("PY");lcd.write(byte(2));lcd.print("     ");
+         lcd.print(F("PY"));lcd.write(byte(2));lcd.print(F("     "));
          balance_cnt++;
          if (balance_cnt>BALANS_UPDATE_INTERVAL)balance_cnt=0;  
          break;
      }
      case SET_GENERATORA:        lcd.print(F("PE3EPB          "));break;
-     case ZAPUSK_GENERATORA:     lcd.print(F("CTAPT... #"));lcd.print(starts_try_num);lcd.print("      ");break;
-     case OSHIBKA_ZAPUSKA:       lcd.print("O");lcd.write(byte(0));lcd.write(byte(1));lcd.write(byte(2));lcd.print(F("KA CTAPTA   "));break;
+     case ZAPUSK_GENERATORA:     lcd.print(F("CTAPT... #"));lcd.print(starts_try_num);lcd.print(F("      "));break;
+     case OSHIBKA_ZAPUSKA:       lcd.print(F("O"));lcd.write(byte(0));lcd.write(byte(1));lcd.write(byte(2));lcd.print(F("KA CTAPTA   "));break;
      case OSTANOV_GENERATORA:    lcd.print(F("OCTAHOBKA...    "));break;
      case PROPALA_OSNOVNAYA_SET: lcd.print(F("HET HA"));lcd.write(byte(4));lcd.print("P");lcd.write(byte(5));lcd.write(byte(6));lcd.print(F("EH"));lcd.write(byte(1));lcd.write(byte(5));lcd.print(F("   "));break;
      case FORCE_GENERATOR:
      case FORCE_OSNOVNAYA:
-     case FORCE_NOPOWER:lcd.write(byte(4));lcd.print(F("P"));lcd.write(byte(1));lcd.print(F("H. PE"));lcd.write(byte(6));lcd.write(byte(1));lcd.print("M");break;
+     case FORCE_NOPOWER:lcd.write(byte(4));lcd.print(F("P"));lcd.write(byte(1));lcd.print(F("H. PE"));lcd.write(byte(6));lcd.write(byte(1));lcd.print(F("M"));break;
    } 
 }
 
 void setup() {
-  String num="";
-  byte i=10;
+  //String num="";
+  byte i=10,k=0;
   // set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
   lcd.clear();
   analogWrite(24,30);
   lcd.setCursor(0, 0);
+  lcd.print(F("Starting GSM"));
   ///lcd.print("Start ...");
   Serial.begin(57600);
   //Serial.begin(19200);
   //Serial.begin(9600);
-  
-  Serial.println("AT");
-  Serial.flush();
-  delay(300);
+  for (k=0;k<10;k++){
+    Serial.println(F("AT"));
+    Serial.flush();
+    delay(1000);
+    lcd.setCursor(k, 1);
+    lcd.print(F("*"));
+ }
   
   //send("ATD*111*6*2#");
   Serial.println(F("AT+CMGF=1"));
@@ -142,6 +147,10 @@ void setup() {
   delay(300);
   
   Serial.println(F("AT+CNMI=1,1,0,0,0"));
+  Serial.flush();
+  delay(300);
+  
+  Serial.println(F("AT+CMGD=1,4"));  
   Serial.flush();
   delay(300);
   
@@ -167,12 +176,15 @@ void setup() {
   lcd.clear();
   ClearSerial();
   lcd.setCursor(0,0);
-  if(getMasterNum(&num)<0) {
-    lcd.print(num);
+  if(getMasterNum(&COMMAND_PHONE)<0) {
+    lcd.print(COMMAND_PHONE);
+    gsm_flag=0;
   }else {
+    COMMAND_PHONE.replace("+7","8");
     lcd.print(F("Master num:"));
     lcd.setCursor(0,1);
-    lcd.print(num);
+    lcd.print(COMMAND_PHONE);
+    lcd.print(F(";"));
   }
   delay(5000);
   lcd.clear();
@@ -183,7 +195,7 @@ uint8_t c_step=0;
 byte strInUse=0;
 byte heartbeat=0;
 void SendCommandComplite() {
-    sendTextMessage(String(COMMAND_PHONE),"Kommanda vipolnena");
+    sendTextMessage(COMMAND_PHONE,"Kommanda vipolnena");
 }
 
 void loop() {
@@ -203,6 +215,7 @@ void loop() {
     case 0:lcd.print(" ");heartbeat++;break;
     case 1:lcd.print("*");heartbeat=0;break;
   }
+  if(gsm_flag>0){//start gsm_flag processing
   if(curr_state==SET_OSNOVNAYA || curr_state==SET_GENERATORA || curr_state==FORCE_GENERATOR ||  curr_state==FORCE_OSNOVNAYA || curr_state==FORCE_NOPOWER || curr_state==OSHIBKA_ZAPUSKA) {
     if(strInUse==0) {
       if(signal_oper_update_cnt==0){
@@ -219,7 +232,7 @@ void loop() {
       strInUse--;
       if(strInUse==0) {
         lcd.setCursor(0, 0);
-        lcd.print("                ");
+        lcd.print(F("                "));
         signal_oper_update_cnt=0;
       }
     }
@@ -229,7 +242,7 @@ void loop() {
   if(curr_state==OSHIBKA_ZAPUSKA && start_err_notification==0) {
     start_err_notification++;
     GetCurrInfo(&OtvetSMS);
-    sendTextMessage(String(COMMAND_PHONE),OtvetSMS);
+    sendTextMessage(COMMAND_PHONE,OtvetSMS);
   }
   phone=" ";
   text=" ";
@@ -238,18 +251,18 @@ void loop() {
       if(val==-1){
           strInUse=20;
           lcd.setCursor(0, 0);
-          lcd.print("                ");
+          lcd.print(F("                "));
           lcd.setCursor(0, 0);
-          lcd.print("SMS HE ");lcd.write(4);lcd.print("P");lcd.write(1);lcd.print("H");lcd.write(5);lcd.print("TO");
+          lcd.print(F("SMS HE "));lcd.write(4);lcd.print("P");lcd.write(1);lcd.print("H");lcd.write(5);lcd.print(F("TO"));
       }else if(val==1) {
            strInUse=20;
            lcd.setCursor(0, 0);
-           lcd.print("                ");
+           lcd.print(F("                "));
            lcd.setCursor(0, 0);
            lcd.print(">");
            
-          
-          if(phone==String(COMMAND_PHONE)){
+          phone.replace("+7","8");
+          if(phone==COMMAND_PHONE){
              text.toUpperCase();
              lcd.print(text);
              if(text==String("RUN") || text==String("START") || text==String("1") ){
@@ -266,29 +279,30 @@ void loop() {
                 SendCommandComplite();
              }else if(text==String("?") ||text==String("INFO")){
                  GetCurrInfo(&OtvetSMS);
-                 sendTextMessage(String(COMMAND_PHONE),OtvetSMS);
+                 sendTextMessage(COMMAND_PHONE,OtvetSMS);
              }else if(text==String("HELP")){
                  //GetHelp(&OtvetSMS);
                  SendCommandComplite();
                  //sendTextMessage(String(COMMAND_PHONE),OtvetSMS);
              }else{
-                 sendTextMessage(String(COMMAND_PHONE),"Nevernaya kommanda");
+                 sendTextMessage(COMMAND_PHONE,"Nevernaya kommanda");
              } 
           }else {
             strInUse=20;
             lcd.setCursor(0, 0);
-            lcd.print("                ");
+            lcd.print(F("                "));
             lcd.setCursor(0, 0);
             lcd.print(F("HOMEP "));lcd.print(F("HE"));lcd.write(4);lcd.print(F("P"));lcd.print(F("AB."));
             delay(3000);
             lcd.setCursor(0, 0);
-            lcd.print("                ");
+            lcd.print(F("                "));
             lcd.setCursor(0, 0);
             lcd.print(phone);
           }
       }
   }
   ClearSerial();
+  }//end gsm_flag processing
   
   ProcessFunc();
   printCurState();

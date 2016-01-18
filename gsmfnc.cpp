@@ -86,7 +86,7 @@ void sendTextMessage(String phnum,String msg) {
 }
 
 int balans(String *ans) {
-  int i=0,j=0;
+  short int i=0,j=0;
   ClearSerial();
   Serial.println(F("AT"));
   Serial.flush();
@@ -110,7 +110,7 @@ char getTextMessage(String *phone,String *text){
   char res=0;
   unsigned short i,j;
   readBuff="";
-  Serial.print(F("AT+CMGR=1\r"));
+  Serial.println(F("AT+CMGR=1"));
   Serial.flush();
   wait(300);
   readBuff=Serial.readString();
@@ -130,10 +130,7 @@ char getTextMessage(String *phone,String *text){
     readBuff="";
     ClearSerial();   
    
-    Serial.println(F("AT+CMGD=1,4"));  
-    Serial.flush();
-    delay(200);
-    ClearSerial();
+    c
     res=1;
   }/*else {
     lcd.setCursor(0, 0);

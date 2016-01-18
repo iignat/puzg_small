@@ -27,3 +27,7 @@ K4 - PC3 - D19
 K5 - PC4 - D20
 K6 - PC5 - D21
 K7 - PC6 - D22
+
+Фюзы для Atmega32
+low EF
+hight FF 
