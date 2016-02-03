@@ -85,6 +85,37 @@ void sendTextMessage(String phnum,String msg) {
 //    send("\26");
 }
 
+
+void GetHelp(String phnum){
+      // Устанавливает текстовый режим для SMS-сообщений
+    Serial.println(F("AT+CMGF=1"));
+    Serial.flush();
+    delay(300);
+    Serial.println("AT+CMGS=\""+phnum+"\"");
+    Serial.flush();
+    delay(300);
+    
+    // Пишем текст сообщения
+  
+    Serial.print(F("? - Zapros tekushego sostoyaniya\r\n"));
+    Serial.print(F("START - Prinuditelniy zapusk generatora\r\n"));
+    Serial.print(F("STOP - Prinuditelnaya rabota ot osnovnoy seti\r\n"));
+    Serial.print((char)26);
+    Serial.flush();
+    delay(300);
+    ClearSerial();
+    Serial.println("AT+CMGS=\""+phnum+"\"");
+    Serial.flush();
+    delay(300);
+    Serial.print(F("NOPOWER - Prinuditelnoe otkluchenie elektrichestva\r\n"));
+    Serial.print(F("AUTO - Snyatie prinuditelnogo regima, perekhod na avtomat\r\n"));
+    // Отправляем Ctrl+Z, обозначая, что сообщение готово
+    Serial.print((char)26);
+    Serial.flush();
+    delay(300);
+    ClearSerial();
+}
+
 int balans(String *ans) {
   short int i=0,j=0;
   ClearSerial();
@@ -130,7 +161,10 @@ char getTextMessage(String *phone,String *text){
     readBuff="";
     ClearSerial();   
    
-    c
+    Serial.println(F("AT+CMGD=1,4"));  
+    Serial.flush();
+    delay(300);
+    ClearSerial();
     res=1;
   }/*else {
     lcd.setCursor(0, 0);

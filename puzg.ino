@@ -31,15 +31,7 @@ String blns_str="";
 byte start_err_notification=0;
 byte signal_oper_update_cnt=0;
 byte gsm_flag=1;
-
-/*void GetHelp(String *text){
-  text[0]="";
-  text[0]+="? - Zapros tekushego sostoyaniya\r\n";
-  text[0]+="START - Prinuditelniy zapusk generatora\r\n";
-  text[0]+="STOP - Prinuditelnaya rabota ot osnovnoy seti\r\n";
-  text[0]+="NOPOWER - Prinuditelnoe otkluchenie elektrichestva\r\n";
-  text[0]+="AUTO - Snyatie prinuditelnogo regima, perekhod na avtonat\r\n";
-}*/
+short restart_sim_cnt=0;
 
 void GetCurrInfo(String *text){
     const String s1="PRINUDITELNO ";
@@ -165,6 +157,8 @@ void setup() {
   pinMode(OSNOVNAYA,INPUT);
   pinMode(GENERATOR,INPUT);
   
+  pinMode(RESTART_SIM,OUTPUT);
+  
   pinMode(OSNOVNAYA_SWCH,OUTPUT);
   pinMode(GENERATOR_ON,OUTPUT);
   pinMode(GENERATOR_OFF,OUTPUT);
@@ -216,6 +210,14 @@ void loop() {
     case 1:lcd.print("*");heartbeat=0;break;
   }
   if(gsm_flag>0){//start gsm_flag processing
+  restart_sim_cnt++;
+  if (restart_sim_cnt>=65534){
+    digitalWrite(RESTART_SIM,HIGH);
+    delay(1000);
+    digitalWrite(RESTART_SIM,LOW);
+    restart_sim_cnt=0;
+  }
+  
   if(curr_state==SET_OSNOVNAYA || curr_state==SET_GENERATORA || curr_state==FORCE_GENERATOR ||  curr_state==FORCE_OSNOVNAYA || curr_state==FORCE_NOPOWER || curr_state==OSHIBKA_ZAPUSKA) {
     if(strInUse==0) {
       if(signal_oper_update_cnt==0){
@@ -281,9 +283,7 @@ void loop() {
                  GetCurrInfo(&OtvetSMS);
                  sendTextMessage(COMMAND_PHONE,OtvetSMS);
              }else if(text==String("HELP")){
-                 //GetHelp(&OtvetSMS);
-                 SendCommandComplite();
-                 //sendTextMessage(String(COMMAND_PHONE),OtvetSMS);
+                 GetHelp(COMMAND_PHONE);
              }else{
                  sendTextMessage(COMMAND_PHONE,"Nevernaya kommanda");
              } 

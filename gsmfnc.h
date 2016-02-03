@@ -3,6 +3,8 @@
 #include <string.h>
 #include <LiquidCrystal.h>
 
+#define RESTART_SIM 0
+
 extern LiquidCrystal lcd;
 
 void ClearSerial();
@@ -17,6 +19,7 @@ void sendTextMessage(String phnum,String msg);
 char getTextMessage(String *phone,String *text);
 int balans(String *ans);
 char getMasterNum(String * ans);
+void GetHelp(String phnum);
 
 void ErrorMsg(char b=1);
 
