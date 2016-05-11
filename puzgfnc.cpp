@@ -17,7 +17,7 @@ void generator_off(){
   ostanov_generatora_cnt++;
   if(ostanov_generatora_cnt>OSTANOV_GENERATORA1_CNT) {
     digitalWrite(GENERATOR_SWCH,LOW);
-    delay(100);
+    delay(OSNOVNAYA_GENERATOR_SWH_DELAY);
     digitalWrite(OSNOVNAYA_SWCH,HIGH);
   }
   if(ostanov_generatora_cnt>OSTANOV_GENERATORA2_CNT) {
