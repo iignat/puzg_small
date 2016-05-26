@@ -19,6 +19,12 @@
 #define FORCE_GENERATOR             6
 #define FORCE_OSNOVNAYA             7
 #define FORCE_NOPOWER               8
+#define GLOBAL_ERROR                9
+#define FORCE_GENERATOR_START       10
+#define FORCE_OSNOVNAYA_START       11
+#define FORCE_NOPOWER_START         12
+#define UNDEF_STATE                 255
+
 
 #define START_NUM                    5
 #define FORCE_OSNOVNAYA_SHTD_CNT     3

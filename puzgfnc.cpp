@@ -2,7 +2,7 @@
 #include <Arduino.h>
 #include "puzgfnc.h"
 
-byte curr_state=0;
+byte curr_state=UNDEF_STATE;
 byte zapusk_delay=0;
 byte starts_try_num=0;
 byte force_generator_cnt=0;
@@ -44,21 +44,41 @@ void ProcessFunc() {
   f_generator=digitalRead(GENERATOR);
   
   if(curr_state==FORCE_OSNOVNAYA){  
+    digitalWrite(GENERATOR_SWCH,LOW);    
+    digitalWrite(OSNOVNAYA_SWCH,HIGH);    
+    return;  
+  }else if(curr_state==FORCE_NOPOWER){
+      digitalWrite(OSNOVNAYA_SWCH,LOW);
+      digitalWrite(GENERATOR_SWCH,LOW);
+      return;
+  }else if(curr_state==FORCE_GENERATOR){  
+      digitalWrite(OSNOVNAYA_SWCH,LOW);
+      digitalWrite(GENERATOR_SWCH,HIGH);
+      return;
+  }else if(curr_state==FORCE_OSNOVNAYA_START){  
     if(f_generator==1 && force_osnovnaya_cnt<FORCE_OSNOVNAYA_SHTD_CNT) {
       digitalWrite(GENERATOR_OFF,HIGH);
       digitalWrite(OSNOVNAYA_SWCH,HIGH);
         delay(1000);
       digitalWrite(GENERATOR_OFF,LOW);
       force_osnovnaya_cnt++;
-    }else force_osnovnaya_cnt=0;
-     
-    digitalWrite(GENERATOR_SWCH,LOW);    
-    delay(OSNOVNAYA_GENERATOR_SWH_DELAY);
-    digitalWrite(OSNOVNAYA_SWCH,HIGH);
+    }else if(f_generator==0) {
+      force_osnovnaya_cnt=0;
+      digitalWrite(GENERATOR_SWCH,LOW);    
+      delay(OSNOVNAYA_GENERATOR_SWH_DELAY);
+      digitalWrite(OSNOVNAYA_SWCH,HIGH);
+      curr_state=FORCE_OSNOVNAYA;
+    }else{
+      force_osnovnaya_cnt=0;
+      digitalWrite(GENERATOR_SWCH,LOW);    
+      delay(OSNOVNAYA_GENERATOR_SWH_DELAY);
+      digitalWrite(OSNOVNAYA_SWCH,HIGH);
+      curr_state=GLOBAL_ERROR;
+    }
     
     return;
     
-  }else if(curr_state==FORCE_NOPOWER){
+  }else if(curr_state==FORCE_NOPOWER_START){
   
     if(f_generator==1 && force_osnovnaya_cnt<FORCE_OSNOVNAYA_SHTD_CNT) {
       digitalWrite(GENERATOR_OFF,HIGH);
@@ -66,22 +86,39 @@ void ProcessFunc() {
         delay(1000);
       digitalWrite(GENERATOR_OFF,LOW);
       force_osnovnaya_cnt++;
-    }else force_osnovnaya_cnt=0;
+    }else if(f_generator==0){
+      force_osnovnaya_cnt=0;
+      digitalWrite(OSNOVNAYA_SWCH,LOW);
+      digitalWrite(GENERATOR_SWCH,LOW);
+      curr_state==FORCE_NOPOWER;
+    }else{
+      force_osnovnaya_cnt=0;
+      digitalWrite(OSNOVNAYA_SWCH,LOW);
+      digitalWrite(GENERATOR_SWCH,LOW);
+      curr_state=GLOBAL_ERROR;
+    }
     
-    digitalWrite(OSNOVNAYA_SWCH,LOW);
-    digitalWrite(GENERATOR_SWCH,LOW);
     return;
-  }else if(curr_state==FORCE_GENERATOR){  
+  }else if(curr_state==FORCE_GENERATOR_START){  
     if(f_generator==0 && force_generator_cnt<FORCE_GENERATOR_START_CNT) {
       digitalWrite(GENERATOR_ON,HIGH);
       delay(6000);  
       digitalWrite(GENERATOR_ON,LOW);
       force_generator_cnt++;
-    }else force_generator_cnt=0;
+    }else if(f_generator==1){
+      force_generator_cnt=0;
+      digitalWrite(OSNOVNAYA_SWCH,LOW);
+      delay(OSNOVNAYA_GENERATOR_SWH_DELAY);
+      digitalWrite(GENERATOR_SWCH,HIGH);
+      curr_state=FORCE_GENERATOR;
+    }else {
+      force_generator_cnt=0;
+      digitalWrite(OSNOVNAYA_SWCH,LOW);
+      delay(OSNOVNAYA_GENERATOR_SWH_DELAY);
+      digitalWrite(GENERATOR_SWCH,HIGH);
+      curr_state=GLOBAL_ERROR;
+    }
     
-    digitalWrite(OSNOVNAYA_SWCH,LOW);
-    delay(OSNOVNAYA_GENERATOR_SWH_DELAY);
-    digitalWrite(GENERATOR_SWCH,HIGH);
     return;
   }
   

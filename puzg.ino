@@ -32,6 +32,7 @@ byte start_err_notification=0;
 byte signal_oper_update_cnt=0;
 byte gsm_flag=1;
 short restart_sim_cnt=0;
+byte f_force_osnovnaya_fail=0;
 
 void GetCurrInfo(String *text){
     const String s1="PRINUDITELNO ";
@@ -65,7 +66,7 @@ void GetCurrInfo(String *text){
       case FORCE_GENERATOR:text[0]+=(s1+"GENERATOR");break;
       case FORCE_OSNOVNAYA:text[0]+=(s1+"OSNOVNAYA SET'");break;
       case FORCE_NOPOWER:text[0]+=(s1+"OTKLUCHENIE ENERGII");break;
-      default:text[0]+="NEIZVESTNIY REGIM";break;  
+      default:text[0]+="OSHIBKA !!!";break;  
     }  
     text[0]+=s4;
     
@@ -98,9 +99,10 @@ void printCurState() {
      case OSHIBKA_ZAPUSKA:       lcd.print(F("O"));lcd.write(byte(0));lcd.write(byte(1));lcd.write(byte(2));lcd.print(F("KA CTAPTA   "));break;
      case OSTANOV_GENERATORA:    lcd.print(F("OCTAHOBKA...    "));break;
      case PROPALA_OSNOVNAYA_SET: lcd.print(F("HET HA"));lcd.write(byte(4));lcd.print("P");lcd.write(byte(5));lcd.write(byte(6));lcd.print(F("EH"));lcd.write(byte(1));lcd.write(byte(5));lcd.print(F("   "));break;
-     case FORCE_GENERATOR:
-     case FORCE_OSNOVNAYA:
-     case FORCE_NOPOWER:lcd.write(byte(4));lcd.print(F("P"));lcd.write(byte(1));lcd.print(F("H. PE"));lcd.write(byte(6));lcd.write(byte(1));lcd.print(F("M"));break;
+     case FORCE_GENERATOR:lcd.write(byte(4));lcd.print(F("P"));lcd.write(byte(1));lcd.print(F("H. PE"));lcd.write(byte(6));lcd.write(byte(1));lcd.print(F("M    1"));break;
+     case FORCE_OSNOVNAYA:lcd.write(byte(4));lcd.print(F("P"));lcd.write(byte(1));lcd.print(F("H. PE"));lcd.write(byte(6));lcd.write(byte(1));lcd.print(F("M    2"));break;
+     case FORCE_NOPOWER:lcd.write(byte(4));lcd.print(F("P"));lcd.write(byte(1));lcd.print(F("H. PE"));lcd.write(byte(6));lcd.write(byte(1));lcd.print(F("M    3"));break;
+     case GLOBAL_ERROR:lcd.print(F("ERROR !!!"));break;
    } 
 }
 
@@ -246,6 +248,17 @@ void loop() {
     GetCurrInfo(&OtvetSMS);
     sendTextMessage(COMMAND_PHONE,OtvetSMS);
   }
+  
+  if(curr_state==FORCE_OSNOVNAYA && digitalRead(OSNOVNAYA)==0) {
+    if(f_force_osnovnaya_fail==0) {
+      SendAlertSMS(COMMAND_PHONE);
+      f_force_osnovnaya_fail++;
+    }
+  }else{
+    f_force_osnovnaya_fail=0;
+  } 
+  
+  
   phone=" ";
   text=" ";
   if(curr_state==SET_OSNOVNAYA || curr_state==SET_GENERATORA || curr_state==FORCE_GENERATOR ||  curr_state==FORCE_OSNOVNAYA || curr_state==FORCE_NOPOWER || curr_state==OSHIBKA_ZAPUSKA) {
@@ -268,13 +281,13 @@ void loop() {
              text.toUpperCase();
              lcd.print(text);
              if(text==String("RUN") || text==String("START") || text==String("1") ){
-                curr_state=FORCE_GENERATOR;
+                curr_state=FORCE_GENERATOR_START;
                 SendCommandComplite();
              }else if(text==String("STOP") || text==String("2") ){
-                curr_state=FORCE_OSNOVNAYA;
+                curr_state=FORCE_OSNOVNAYA_START;
                 SendCommandComplite();
              }else if(text==String("OFF") ||text==String("NOPOWER")|| text==String("3") ){
-                curr_state=FORCE_NOPOWER;
+                curr_state=FORCE_NOPOWER_START;
                 SendCommandComplite();
              }if(text==String("AUTO") || text==String("4") ){
                 curr_state=SET_OSNOVNAYA;

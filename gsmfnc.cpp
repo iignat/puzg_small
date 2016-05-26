@@ -85,6 +85,27 @@ void sendTextMessage(String phnum,String msg) {
 //    send("\26");
 }
 
+void SendAlertSMS(String phnum){
+      // Устанавливает текстовый режим для SMS-сообщений
+    Serial.println(F("AT+CMGF=1"));
+    Serial.flush();
+    delay(300);
+    Serial.println("AT+CMGS=\""+phnum+"\"");
+    Serial.flush();
+    delay(300);
+    
+    // Пишем текст сообщения
+  
+    Serial.print(F("Propala osnovnaya set'\r\n"));
+    Serial.print(F("Sistema v prinuditelnom regime\r\n"));
+    Serial.print(F("Perekhod na generator NE VIPOLNEN\r\n"));
+    Serial.print(F("Otpravte 1 dlya zapuska\r\n"));
+    // Отправляем Ctrl+Z, обозначая, что сообщение готово
+    Serial.print((char)26);
+    Serial.flush();
+    delay(300);
+    ClearSerial();
+}
 
 void GetHelp(String phnum){
       // Устанавливает текстовый режим для SMS-сообщений

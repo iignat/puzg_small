@@ -20,6 +20,7 @@ char getTextMessage(String *phone,String *text);
 int balans(String *ans);
 char getMasterNum(String * ans);
 void GetHelp(String phnum);
+void SendAlertSMS(String phnum);
 
 void ErrorMsg(char b=1);
 
