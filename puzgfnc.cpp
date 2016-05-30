@@ -130,6 +130,9 @@ void ProcessFunc() {
         digitalWrite(GENERATOR_SWCH,LOW);
         delay(OSNOVNAYA_GENERATOR_SWH_DELAY);
         digitalWrite(OSNOVNAYA_SWCH,HIGH);
+      }else{
+         digitalWrite(GENERATOR_SWCH,LOW);
+         digitalWrite(OSNOVNAYA_SWCH,HIGH);
       }
       curr_state=SET_OSNOVNAYA;
       starts_try_num=0;
@@ -139,6 +142,9 @@ void ProcessFunc() {
       if(curr_state!=SET_GENERATORA) {
         digitalWrite(OSNOVNAYA_SWCH,LOW);
         delay(OSNOVNAYA_GENERATOR_SWH_DELAY);
+        digitalWrite(GENERATOR_SWCH,HIGH);
+      }else{
+        digitalWrite(OSNOVNAYA_SWCH,LOW);
         digitalWrite(GENERATOR_SWCH,HIGH);
       }
       curr_state=SET_GENERATORA;
