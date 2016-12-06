@@ -2,7 +2,8 @@
 #include <LiquidCrystal.h>
 #include "puzgfnc.h"
 
-LiquidCrystal lcd(3, 2, 28, 27, 26, 25);
+//LiquidCrystal lcd(3, 2, 28, 27, 26, 25);
+LiquidCrystal lcd(13, 12, 8, 9, 10, 11);
 
 byte rusLetterB[8]= {0x1F,0x11,0x10,0x1E,0x11,0x11,0x1E,0};//Б
 //byte rusLetterG[8]= {0x1F,0x11,0x10,0x10,0x10,0x10,0x10,0};//Г
