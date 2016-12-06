@@ -2,9 +2,6 @@
 #include <LiquidCrystal.h>
 #include "puzgfnc.h"
 
-#define BALANS_UPDATE_INTERVAL 3600 //sec
-String COMMAND_PHONE ="";
-
 LiquidCrystal lcd(3, 2, 28, 27, 26, 25);
 
 byte rusLetterB[8]= {0x1F,0x11,0x10,0x1E,0x11,0x11,0x1E,0};//Б
