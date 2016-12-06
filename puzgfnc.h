@@ -1,13 +1,13 @@
 #ifndef PUZG_H
 #define PUZG_H
 
-#define OSNOVNAYA 31
-#define GENERATOR 30
+#define OSNOVNAYA 2
+#define GENERATOR 3
 
-#define OSNOVNAYA_SWCH 16
-#define GENERATOR_ON 17
-#define GENERATOR_OFF 18
-#define GENERATOR_SWCH 19
+#define OSNOVNAYA_SWCH 4
+#define GENERATOR_ON 5
+#define GENERATOR_OFF 6
+#define GENERATOR_SWCH 7
 
 
 #define SET_OSNOVNAYA               0
