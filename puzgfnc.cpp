@@ -1,6 +1,8 @@
 
 #include <Arduino.h>
 #include "puzgfnc.h"
+#define LOW 1
+#define HIGH 0
 
 byte curr_state=UNDEF_STATE;
 byte zapusk_delay=0;
@@ -8,6 +10,13 @@ byte starts_try_num=0;
 byte force_generator_cnt=0;
 byte force_osnovnaya_cnt=0;
 byte ostanov_generatora_cnt=0;
+
+void pins_init() {
+  digitalWrite(GENERATOR_SWCH,LOW);
+  digitalWrite(OSNOVNAYA_SWCH,LOW);
+  digitalWrite(GENERATOR_ON,LOW);
+  digitalWrite(GENERATOR_OFF,LOW);
+}
 
 void generator_off(){
   if(curr_state!=OSTANOV_GENERATORA) {
@@ -22,6 +31,7 @@ void generator_off(){
   }
   if(ostanov_generatora_cnt>OSTANOV_GENERATORA2_CNT) {
     digitalWrite(GENERATOR_OFF,HIGH);
+    digitalWrite(GENERATOR_ON,LOW);
     delay(1000);
     digitalWrite(GENERATOR_OFF,LOW);
   }
@@ -34,7 +44,8 @@ void generator_on(){
   
   digitalWrite(OSNOVNAYA_SWCH,LOW);
   digitalWrite(GENERATOR_ON,HIGH);
-  delay(6000);
+  digitalWrite(GENERATOR_OFF,LOW);
+  delay(DIZEL_STARTER_TIME);
   digitalWrite(GENERATOR_ON,LOW);
 }
 

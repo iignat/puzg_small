@@ -2,6 +2,7 @@
 #include <LiquidCrystal.h>
 #include "puzgfnc.h"
 
+
 //LiquidCrystal lcd(3, 2, 28, 27, 26, 25);
 LiquidCrystal lcd(13, 12, 8, 9, 10, 11);
 
@@ -66,7 +67,7 @@ void GetCurrInfo(String *text){
 void printCurState() {
    lcd.setCursor(0, 1);
    switch(curr_state) {
-     case SET_OSNOVNAYA:lcd.print(F("HOPMA "));break;     
+     case SET_OSNOVNAYA:lcd.print(F("HOPMA           "));break;     
      case SET_GENERATORA:        lcd.print(F("PE3EPB          "));break;
      case ZAPUSK_GENERATORA:     lcd.print(F("CTAPT... #"));lcd.print(starts_try_num);lcd.print(F("      "));break;
      case OSHIBKA_ZAPUSKA:       lcd.print(F("O"));lcd.write(byte(0));lcd.write(byte(1));lcd.write(byte(2));lcd.print(F("KA CTAPTA   "));break;
@@ -83,6 +84,31 @@ void setup() {
   //String num="";
   byte i=10,k=0;
   // set up the LCD's number of columns and rows:
+  pinMode(OSNOVNAYA,INPUT);
+  pinMode(GENERATOR,INPUT);
+  
+   
+  pinMode(OSNOVNAYA_SWCH,OUTPUT);
+  pinMode(GENERATOR_ON,OUTPUT);
+  pinMode(GENERATOR_OFF,OUTPUT);
+  pinMode(GENERATOR_SWCH,OUTPUT);
+  
+  pinMode(0,INPUT_PULLUP);
+  pinMode(1,INPUT_PULLUP);
+  pinMode(14,INPUT_PULLUP);
+  pinMode(15,INPUT_PULLUP);
+  pinMode(16,INPUT_PULLUP);
+  pinMode(A0,INPUT_PULLUP);
+  pinMode(A1,INPUT_PULLUP);
+  pinMode(A2,INPUT_PULLUP);
+  pinMode(A3,INPUT_PULLUP);
+  pinMode(A4,INPUT_PULLUP);
+  pinMode(A5,INPUT_PULLUP);
+  pinMode(A6,INPUT_PULLUP);
+  pinMode(A7,INPUT_PULLUP);
+
+  pins_init();
+  delay(1000); 
   lcd.begin(16, 2);
   lcd.clear();
   
@@ -98,20 +124,12 @@ void setup() {
   lcd.createChar(5, rusLetterYA);
   lcd.createChar(6, rusLetterGH);
   
-  pinMode(OSNOVNAYA,INPUT);
-  pinMode(GENERATOR,INPUT);
-  
-   
-  pinMode(OSNOVNAYA_SWCH,OUTPUT);
-  pinMode(GENERATOR_ON,OUTPUT);
-  pinMode(GENERATOR_OFF,OUTPUT);
-  pinMode(GENERATOR_SWCH,OUTPUT);
-  
-  pinMode(20,OUTPUT);
-  pinMode(21,OUTPUT);
-  pinMode(22,OUTPUT); 
-  
   lcd.clear();
+  for(i=0;i<10;i++){
+    lcd.setCursor(i, 2);
+    lcd.print('-');
+    delay(100);
+  }
 }
 
 uint8_t c_step=0;
@@ -119,10 +137,14 @@ byte strInUse=0;
 byte heartbeat=0;
 
 void loop() {
-
   byte val=0;
   String s="";
   unsigned int i=0;
+  lcd.setCursor(0, 0);
+  lcd.print("KL1=");lcd.print(digitalRead(OSNOVNAYA)); 
+
+  lcd.setCursor(5, 0);
+  lcd.print("  KL2=");lcd.print(digitalRead(GENERATOR)); 
   
   lcd.setCursor(13, 0);
   switch(heartbeat){
@@ -133,7 +155,6 @@ void loop() {
   ProcessFunc();
   printCurState();
   delay(1000);
-  
    
 }
 
