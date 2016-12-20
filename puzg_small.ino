@@ -1,3 +1,4 @@
+#define F_CPU 16000000L
 // include the library code:
 #include <LiquidCrystal.h>
 #include "puzgfnc.h"
