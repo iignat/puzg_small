@@ -15,6 +15,8 @@ byte old_generator=UNKNOWN_STATE;
 byte new_generator=UNKNOWN_STATE;
 byte old_osnovnaya=UNKNOWN_STATE;
 byte new_osnovnaya=UNKNOWN_STATE;
+byte f_osnovnaya=UNKNOWN_STATE;
+byte f_generator=UNKNOWN_STATE;
 
 void pins_init() {
   digitalWrite(GENERATOR_SWCH,LOW);
@@ -57,7 +59,7 @@ void generator_on(){
 }
 
 void ProcessFunc() {
-  byte f_osnovnaya=0,f_generator=0;
+  
   new_osnovnaya=digitalRead(OSNOVNAYA);
   new_generator=digitalRead(GENERATOR);
   

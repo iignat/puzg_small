@@ -1,8 +1,12 @@
 #ifndef PUZG_H
 #define PUZG_H
 
-#define OSNOVNAYA 2
-#define GENERATOR 3
+//#define OSNOVNAYA 2
+//#define GENERATOR 3
+
+#define OSNOVNAYA 3
+#define GENERATOR 2
+
 
 #define OSNOVNAYA_SWCH 4
 #define GENERATOR_ON 5
@@ -26,11 +30,11 @@
 #define UNDEF_STATE                 255
 
 
-#define START_NUM                    100
+#define START_NUM                    10
 #define FORCE_OSNOVNAYA_SHTD_CNT     3
 #define FORCE_GENERATOR_START_CNT    5
-#define OSTANOV_GENERATORA1_CNT      10
-#define OSTANOV_GENERATORA2_CNT      20
+#define OSTANOV_GENERATORA1_CNT      30
+#define OSTANOV_GENERATORA2_CNT      60
 #define DIZEL_STARTER_TIME           3000 //ms
 
 #define OSNOVNAYA_GENERATOR_SWH_DELAY  10000 //ms
