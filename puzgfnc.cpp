@@ -3,6 +3,7 @@
 #include "puzgfnc.h"
 #define LOW 1
 #define HIGH 0
+#define UNKNOWN_STATE 100
 
 byte curr_state=UNDEF_STATE;
 byte zapusk_delay=0;
@@ -10,6 +11,10 @@ byte starts_try_num=0;
 byte force_generator_cnt=0;
 byte force_osnovnaya_cnt=0;
 byte ostanov_generatora_cnt=0;
+byte old_generator=UNKNOWN_STATE;
+byte new_generator=UNKNOWN_STATE;
+byte old_osnovnaya=UNKNOWN_STATE;
+byte new_osnovnaya=UNKNOWN_STATE;
 
 void pins_init() {
   digitalWrite(GENERATOR_SWCH,LOW);
@@ -53,71 +58,21 @@ void generator_on(){
 
 void ProcessFunc() {
   byte f_osnovnaya=0,f_generator=0;
-  f_osnovnaya=digitalRead(OSNOVNAYA);
-  f_generator=digitalRead(GENERATOR);
+  new_osnovnaya=digitalRead(OSNOVNAYA);
+  new_generator=digitalRead(GENERATOR);
   
-  if(curr_state==FORCE_OSNOVNAYA){  
-    digitalWrite(GENERATOR_SWCH,LOW);    
-    digitalWrite(OSNOVNAYA_SWCH,LOW);    
-    return;  
-  }else if(curr_state==FORCE_GENERATOR){  
-      digitalWrite(OSNOVNAYA_SWCH,HIGH);
-      digitalWrite(GENERATOR_SWCH,HIGH);
-      return;
-  }else if(curr_state==FORCE_OSNOVNAYA_START){  
-    if(f_generator==1 && force_osnovnaya_cnt<FORCE_OSNOVNAYA_SHTD_CNT) {
-      digitalWrite(OSNOVNAYA_SWCH,LOW);
-      digitalWrite(GENERATOR_SWCH,LOW);
-      
-      digitalWrite(GENERATOR_OFF,HIGH);      
-        delay(1000);
-      digitalWrite(GENERATOR_OFF,LOW);
-      force_osnovnaya_cnt++;
-    }else if(f_generator==0) {
-      force_osnovnaya_cnt=0;
-      digitalWrite(GENERATOR_SWCH,LOW);    
-      //delay(OSNOVNAYA_GENERATOR_SWH_DELAY);
-      digitalWrite(OSNOVNAYA_SWCH,LOW);
-      curr_state=FORCE_OSNOVNAYA;
-    }else{
-      force_osnovnaya_cnt=0;
-      digitalWrite(GENERATOR_SWCH,LOW);    
-      //delay(OSNOVNAYA_GENERATOR_SWH_DELAY);
-      digitalWrite(OSNOVNAYA_SWCH,LOW);
-      curr_state=GLOBAL_ERROR;
-    }
-    
-    return;
-    
-  }else if(curr_state==FORCE_GENERATOR_START){  
-    if(f_generator==0 && force_generator_cnt<FORCE_GENERATOR_START_CNT) {
-      
-      digitalWrite(OSNOVNAYA_SWCH,LOW);
-      digitalWrite(GENERATOR_SWCH,LOW);
-      
-      digitalWrite(GENERATOR_ON,HIGH);
-      delay(DIZEL_STARTER_TIME);  
-      digitalWrite(GENERATOR_ON,LOW);
-      force_generator_cnt++;
-    }else if(f_generator==1){
-      force_generator_cnt=0;
-      delay(OSNOVNAYA_GENERATOR_SWH_DELAY);
-      digitalWrite(OSNOVNAYA_SWCH,HIGH);      
-      digitalWrite(GENERATOR_SWCH,HIGH);
-      curr_state=FORCE_GENERATOR;
-    }else {
-      force_generator_cnt=0;
-      delay(OSNOVNAYA_GENERATOR_SWH_DELAY);
-      digitalWrite(OSNOVNAYA_SWCH,HIGH);      
-      digitalWrite(GENERATOR_SWCH,HIGH);
-      curr_state=GLOBAL_ERROR;
-    }
-    
-    return;
+  if(old_osnovnaya!=UNKNOWN_STATE && old_generator!=UNKNOWN_STATE) {
+      if(old_osnovnaya==new_osnovnaya && new_generator==old_generator) {
+        f_osnovnaya=old_osnovnaya;
+        f_generator=old_generator;
+      }else {
+        old_osnovnaya=new_osnovnaya;
+        old_generator=new_generator;
+      }
+  }else{
+    f_osnovnaya=old_osnovnaya=new_osnovnaya;
+    f_generator=old_generator=new_generator;
   }
-  
-  force_osnovnaya_cnt=0;
-  force_generator_cnt=0;
   
   if(f_osnovnaya==1 && f_generator==0){
       if(curr_state!=SET_OSNOVNAYA) {
