@@ -77,20 +77,22 @@ void ProcessFunc() {
   }
   
   if(f_osnovnaya==1 && f_generator==0){
+      digitalWrite(GENERATOR_SWCH,LOW);
       if(curr_state!=SET_OSNOVNAYA) {
         delay(OSNOVNAYA_GENERATOR_SWH_DELAY);
       }            
-      digitalWrite(GENERATOR_SWCH,LOW);
-      digitalWrite(OSNOVNAYA_SWCH,LOW);
+      
+      digitalWrite(OSNOVNAYA_SWCH,HIGH);
       
       curr_state=SET_OSNOVNAYA;
       starts_try_num=0;
             
   }else if(f_osnovnaya==0 && f_generator==1){
-      if(curr_state!=SET_GENERATORA) {
+     digitalWrite(OSNOVNAYA_SWCH,LOW); 
+     if(curr_state!=SET_GENERATORA) {
         delay(OSNOVNAYA_GENERATOR_SWH_DELAY);
       }
-      digitalWrite(OSNOVNAYA_SWCH,HIGH);
+      
       digitalWrite(GENERATOR_SWCH,HIGH);      
       curr_state=SET_GENERATORA;
       starts_try_num=0;
