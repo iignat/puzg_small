@@ -31,10 +31,11 @@ void generator_off(){
     ostanov_generatora_cnt=0;
   }
   ostanov_generatora_cnt++;
-  if(ostanov_generatora_cnt>OSTANOV_GENERATORA1_CNT) {
-    //delay(OSNOVNAYA_GENERATOR_SWH_DELAY);
+  if(ostanov_generatora_cnt>=OSTANOV_GENERATORA1_CNT) {
+    
     digitalWrite(GENERATOR_SWCH,LOW);    
-    digitalWrite(OSNOVNAYA_SWCH,LOW);
+    if(ostanov_generatora_cnt==OSTANOV_GENERATORA1_CNT)delay(OSNOVNAYA_GENERATOR_SWH_DELAY);
+    digitalWrite(OSNOVNAYA_SWCH,HIGH);
   }
   if(ostanov_generatora_cnt>OSTANOV_GENERATORA2_CNT) {
     digitalWrite(GENERATOR_OFF,HIGH);
