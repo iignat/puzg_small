@@ -1,7 +1,8 @@
 #define F_CPU 16000000L
 // include the library code:
-#include <LiquidCrystal.h>
+#include <LiquidCrystal.h>  
 #include "puzgfnc.h"
+
 
 
 //LiquidCrystal lcd(3, 2, 28, 27, 26, 25);
@@ -131,6 +132,7 @@ void setup() {
     lcd.print('-');
     delay(100);
   }
+  wdt_enable(WDTO_8S);
 }
 
 uint8_t c_step=0;
@@ -152,7 +154,7 @@ void loop() {
     case 0:lcd.print(" ");heartbeat++;break;
     case 1:lcd.print("*");heartbeat=0;break;
   }
-    
+  wdt_reset();
   ProcessFunc();
   printCurState();
   delay(1000);

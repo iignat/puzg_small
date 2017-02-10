@@ -18,6 +18,19 @@ byte new_osnovnaya=UNKNOWN_STATE;
 byte f_osnovnaya=UNKNOWN_STATE;
 byte f_generator=UNKNOWN_STATE;
 
+void delay_wd(unsigned int d_ms) {
+  unsigned int t=d_ms/1000;
+  unsigned int i=0;
+  if(t>0) {
+    for(i=0;i<t;i++){
+      delay(1000);
+      wdt_reset();
+    }
+  }else {
+    delay(d_ms);
+  }
+}
+
 void pins_init() {
   digitalWrite(GENERATOR_SWCH,LOW);
   digitalWrite(OSNOVNAYA_SWCH,LOW);
@@ -34,7 +47,7 @@ void generator_off(){
   if(ostanov_generatora_cnt>=OSTANOV_GENERATORA1_CNT) {
     
     digitalWrite(GENERATOR_SWCH,LOW);    
-    if(ostanov_generatora_cnt==OSTANOV_GENERATORA1_CNT)delay(OSNOVNAYA_GENERATOR_SWH_DELAY);
+    if(ostanov_generatora_cnt==OSTANOV_GENERATORA1_CNT)delay_wd(OSNOVNAYA_GENERATOR_SWH_DELAY);
     digitalWrite(OSNOVNAYA_SWCH,HIGH);
   }
   if(ostanov_generatora_cnt>OSTANOV_GENERATORA2_CNT) {
@@ -55,7 +68,7 @@ void generator_on(){
   
   digitalWrite(GENERATOR_ON,HIGH);
   digitalWrite(GENERATOR_OFF,LOW);
-  delay(DIZEL_STARTER_TIME);
+  delay_wd(DIZEL_STARTER_TIME);
   digitalWrite(GENERATOR_ON,LOW);
 }
 
@@ -80,7 +93,7 @@ void ProcessFunc() {
   if(f_osnovnaya==1 && f_generator==0){
       digitalWrite(GENERATOR_SWCH,LOW);
       if(curr_state!=SET_OSNOVNAYA) {
-        delay(OSNOVNAYA_GENERATOR_SWH_DELAY);
+        delay_wd(OSNOVNAYA_GENERATOR_SWH_DELAY);
       }            
       
       digitalWrite(OSNOVNAYA_SWCH,HIGH);
@@ -91,7 +104,7 @@ void ProcessFunc() {
   }else if(f_osnovnaya==0 && f_generator==1){
      digitalWrite(OSNOVNAYA_SWCH,LOW); 
      if(curr_state!=SET_GENERATORA) {
-        delay(OSNOVNAYA_GENERATOR_SWH_DELAY);
+        delay_wd(OSNOVNAYA_GENERATOR_SWH_DELAY);
       }
       
       digitalWrite(GENERATOR_SWCH,HIGH);      

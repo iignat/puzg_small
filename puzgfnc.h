@@ -1,6 +1,6 @@
 #ifndef PUZG_H
 #define PUZG_H
-
+#include <avr/wdt.h>
 //#define OSNOVNAYA 2
 //#define GENERATOR 3
 
@@ -12,6 +12,7 @@
 #define GENERATOR_ON 5
 #define GENERATOR_OFF 6
 #define GENERATOR_SWCH 7
+
 
 
 #define SET_OSNOVNAYA               0
