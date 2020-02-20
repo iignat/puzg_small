@@ -36,7 +36,8 @@
 #define FORCE_GENERATOR_START_CNT    5
 #define OSTANOV_GENERATORA1_CNT      30
 #define OSTANOV_GENERATORA2_CNT      60
-#define DIZEL_STARTER_TIME           3000 //ms
+//#define DIZEL_STARTER_TIME           3000 //ms
+extern int DIZEL_STARTER_TIME; //ms
 
 #define OSNOVNAYA_GENERATOR_SWH_DELAY  10000 //ms
 
@@ -47,4 +48,3 @@ void ProcessFunc();
 void pins_init();
 
 #endif 
-

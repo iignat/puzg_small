@@ -5,6 +5,8 @@
 #define HIGH 0
 #define UNKNOWN_STATE 100
 
+int DIZEL_STARTER_TIME = 3000; //ms
+
 byte curr_state=UNDEF_STATE;
 byte zapusk_delay=0;
 byte starts_try_num=0;
@@ -136,4 +138,3 @@ void ProcessFunc() {
   if(f_osnovnaya==1 && f_generator==1)generator_off();
   
 }
-

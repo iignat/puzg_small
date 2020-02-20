@@ -1,12 +1,22 @@
 #define F_CPU 16000000L
 // include the library code:
 #include <LiquidCrystal.h>  
+#include <SoftwareSerial.h>
 #include "puzgfnc.h"
+#include "gsmfnc.h"
+#include "gprsfnc.h"
+#include "DHT.h"
+#include "timer-api.h"
+
 
 
 
 //LiquidCrystal lcd(3, 2, 28, 27, 26, 25);
-LiquidCrystal lcd(13, 12, 8, 9, 10, 11);
+LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
+SoftwareSerial gsm(A5, A4); // RX, TX
+DHT dht(A3, DHT22);
+short gprsupdcnt=0;
+
 
 byte rusLetterB[8]= {0x1F,0x11,0x10,0x1E,0x11,0x11,0x1E,0};//Р‘
 //byte rusLetterG[8]= {0x1F,0x11,0x10,0x10,0x10,0x10,0x10,0};//Р“
@@ -29,6 +39,22 @@ byte rusLetterYA[8]= {0x0F,0x11,0x11,0x0F,0x05,0x09,0x11,0};//РЇ
 
 byte start_err_notification=0;
 byte f_force_osnovnaya_fail=0;
+
+int getKey() {
+  int x = analogRead (0);
+  if (x < 60) {
+    return 3;
+  } else if (x < 200) {
+    return 5;
+  } else if (x < 400){
+    return 7;
+  } else if (x < 600){
+    return 9;
+  } else if (x < 800){
+    return 11;
+  }
+  return 15;
+}
 
 void GetCurrInfo(String *text){
     const String s1="PRINUDITELNO ";
@@ -83,8 +109,13 @@ void printCurState() {
 }
 
 void setup() {
-  //String num="";
-  byte i=10,k=0;
+  Serial.begin(9600);
+  gsm.begin(57600);
+  gprsinit(); 
+      
+  ClearSerial();
+  dht.begin();
+  
   // set up the LCD's number of columns and rows:
   pinMode(OSNOVNAYA,INPUT);
   pinMode(GENERATOR,INPUT);
@@ -100,12 +131,12 @@ void setup() {
   pinMode(14,INPUT_PULLUP);
   pinMode(15,INPUT_PULLUP);
   pinMode(16,INPUT_PULLUP);
-  pinMode(A0,INPUT_PULLUP);
+ // pinMode(A0,INPUT_PULLUP);
   pinMode(A1,INPUT_PULLUP);
   pinMode(A2,INPUT_PULLUP);
-  pinMode(A3,INPUT_PULLUP);
-  pinMode(A4,INPUT_PULLUP);
-  pinMode(A5,INPUT_PULLUP);
+  //pinMode(A3,INPUT_PULLUP);
+  //pinMode(A4,INPUT_PULLUP);
+  //pinMode(A5,INPUT_PULLUP);
   pinMode(A6,INPUT_PULLUP);
   pinMode(A7,INPUT_PULLUP);
 
@@ -127,22 +158,19 @@ void setup() {
   lcd.createChar(6, rusLetterGH);
   
   lcd.clear();
-  for(i=0;i<10;i++){
+  for(int i=0;i<10;i++){
     lcd.setCursor(i, 2);
     lcd.print('-');
     delay(100);
   }
   wdt_enable(WDTO_8S);
+  timer_init_ISR_1Hz(TIMER_DEFAULT);
+  
 }
 
-uint8_t c_step=0;
-byte strInUse=0;
 byte heartbeat=0;
 
 void loop() {
-  byte val=0;
-  String s="";
-  unsigned int i=0;
   lcd.setCursor(0, 0);
   lcd.print("KL1=");lcd.print(digitalRead(OSNOVNAYA)); 
 
@@ -154,15 +182,23 @@ void loop() {
     case 0:lcd.print(" ");heartbeat++;break;
     case 1:lcd.print("*");heartbeat=0;break;
   }
+  lcd.setCursor(14, 0);
+  DIZEL_STARTER_TIME=getKey();
+  lcd.print("  ");
+  lcd.setCursor(14, 0);
+  lcd.print(DIZEL_STARTER_TIME);
   wdt_reset();
   ProcessFunc();
   printCurState();
+  
   delay(1000);
    
 }
 
-
-
-
-
-
+void timer_handle_interrupts(int timer) {
+    gprsupdcnt++;
+    if(gprsupdcnt>50) {
+      gprsupddata(curr_state,dht.readTemperature(),dht.readHumidity(),gprsupdcnt-50);
+    }
+    if(gprsupdcnt>60)gprsupdcnt=0;
+}
