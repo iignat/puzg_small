@@ -7,12 +7,16 @@
 #define OSNOVNAYA 3
 #define GENERATOR 2
 
+#define OSNOVNAYA_SWCH A5
+#define GENERATOR_ON A4
+#define GENERATOR_OFF A3
+#define GENERATOR_SWCH A2
 
-#define OSNOVNAYA_SWCH 4
+/*#define OSNOVNAYA_SWCH 4
 #define GENERATOR_ON 5
 #define GENERATOR_OFF 6
 #define GENERATOR_SWCH 7
-
+*/
 
 
 #define SET_OSNOVNAYA               0
@@ -31,14 +35,14 @@
 #define UNDEF_STATE                 255
 
 
-#define START_NUM                    10
+//#define START_NUM                    10
 #define FORCE_OSNOVNAYA_SHTD_CNT     3
 #define FORCE_GENERATOR_START_CNT    5
 #define OSTANOV_GENERATORA1_CNT      30
 #define OSTANOV_GENERATORA2_CNT      60
 //#define DIZEL_STARTER_TIME           3000 //ms
-extern int DIZEL_STARTER_TIME; //ms
-
+extern unsigned int DIZEL_STARTER_TIME; //ms
+extern unsigned int START_NUM;
 #define OSNOVNAYA_GENERATOR_SWH_DELAY  10000 //ms
 
 extern uint8_t starts_try_num;

@@ -8,13 +8,13 @@
 #include "DHT.h"
 #include "timer-api.h"
 
-
+//#define GSMMODULE 1
 
 
 //LiquidCrystal lcd(3, 2, 28, 27, 26, 25);
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 SoftwareSerial gsm(A5, A4); // RX, TX
-DHT dht(A3, DHT22);
+DHT dht(A1, DHT22);
 short gprsupdcnt=0;
 
 
@@ -109,14 +109,8 @@ void printCurState() {
 }
 
 void setup() {
-  Serial.begin(9600);
-  gsm.begin(57600);
-  gprsinit(); 
-      
-  ClearSerial();
-  dht.begin();
-  
   // set up the LCD's number of columns and rows:
+  pinMode(A0,INPUT);
   pinMode(OSNOVNAYA,INPUT);
   pinMode(GENERATOR,INPUT);
   
@@ -126,26 +120,36 @@ void setup() {
   pinMode(GENERATOR_OFF,OUTPUT);
   pinMode(GENERATOR_SWCH,OUTPUT);
   
-  pinMode(0,INPUT_PULLUP);
-  pinMode(1,INPUT_PULLUP);
-  pinMode(14,INPUT_PULLUP);
-  pinMode(15,INPUT_PULLUP);
-  pinMode(16,INPUT_PULLUP);
+  pins_init();
+  //delay(1000);
+  Serial.begin(9600);
+
+#ifdef GSMMODULE
+  gsm.begin(57600);
+  gprsinit(); 
+#endif
+
+  ClearSerial();
+  dht.begin();
+  
+  //pinMode(0,INPUT_PULLUP);
+  //pinMode(1,INPUT_PULLUP);
+  //pinMode(14,INPUT_PULLUP);
+  //pinMode(15,INPUT_PULLUP);
+  //pinMode(16,INPUT_PULLUP);
  // pinMode(A0,INPUT_PULLUP);
-  pinMode(A1,INPUT_PULLUP);
-  pinMode(A2,INPUT_PULLUP);
+  //pinMode(A1,INPUT_PULLUP);
+  //pinMode(A2,INPUT_PULLUP);
   //pinMode(A3,INPUT_PULLUP);
   //pinMode(A4,INPUT_PULLUP);
   //pinMode(A5,INPUT_PULLUP);
-  pinMode(A6,INPUT_PULLUP);
-  pinMode(A7,INPUT_PULLUP);
-
-  pins_init();
-  delay(1000); 
+  //pinMode(A6,INPUT_PULLUP);
+  //pinMode(A7,INPUT_PULLUP);
+ 
   lcd.begin(16, 2);
   lcd.clear();
   
-  analogWrite(24,30);///?
+  //analogWrite(24,30);///?
   
   lcd.setCursor(0, 0);
      
@@ -164,13 +168,16 @@ void setup() {
     delay(100);
   }
   wdt_enable(WDTO_8S);
+#ifdef GSMMODULE  
   timer_init_ISR_1Hz(TIMER_DEFAULT);
-  
+#endif
+
 }
 
 byte heartbeat=0;
 
 void loop() {
+  wdt_reset();
   lcd.setCursor(0, 0);
   lcd.print("KL1=");lcd.print(digitalRead(OSNOVNAYA)); 
 
@@ -182,12 +189,14 @@ void loop() {
     case 0:lcd.print(" ");heartbeat++;break;
     case 1:lcd.print("*");heartbeat=0;break;
   }
+  
   lcd.setCursor(14, 0);
   DIZEL_STARTER_TIME=getKey();
   lcd.print("  ");
   lcd.setCursor(14, 0);
   lcd.print(DIZEL_STARTER_TIME);
-  wdt_reset();
+  DIZEL_STARTER_TIME*=1000;
+  
   ProcessFunc();
   printCurState();
   
@@ -196,9 +205,11 @@ void loop() {
 }
 
 void timer_handle_interrupts(int timer) {
+#ifdef GSMMODULE
     gprsupdcnt++;
     if(gprsupdcnt>50) {
       gprsupddata(curr_state,dht.readTemperature(),dht.readHumidity(),gprsupdcnt-50);
     }
     if(gprsupdcnt>60)gprsupdcnt=0;
+#endif
 }
