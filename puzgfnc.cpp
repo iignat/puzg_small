@@ -6,7 +6,7 @@
 #define UNKNOWN_STATE 100
 
 unsigned int DIZEL_STARTER_TIME = 3000; //ms
-unsigned int START_NUM =10;
+uint8_t START_NUM =10;
 
 byte curr_state=UNDEF_STATE;
 byte zapusk_delay=0;

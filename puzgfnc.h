@@ -42,7 +42,7 @@
 #define OSTANOV_GENERATORA2_CNT      60
 //#define DIZEL_STARTER_TIME           3000 //ms
 extern unsigned int DIZEL_STARTER_TIME; //ms
-extern unsigned int START_NUM;
+extern uint8_t START_NUM;
 #define OSNOVNAYA_GENERATOR_SWH_DELAY  10000 //ms
 
 extern uint8_t starts_try_num;

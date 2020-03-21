@@ -5,8 +5,9 @@
 #include "puzgfnc.h"
 #include "gsmfnc.h"
 #include "gprsfnc.h"
-#include "DHT.h"
 #include "timer-api.h"
+#include "menuproc.h"
+#include <EEPROM.h>
 
 //#define GSMMODULE 1
 
@@ -14,8 +15,12 @@
 //LiquidCrystal lcd(3, 2, 28, 27, 26, 25);
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 SoftwareSerial gsm(A5, A4); // RX, TX
-DHT dht(A1, DHT22);
 short gprsupdcnt=0;
+
+struct EEPROMObj_t{
+  uint8_t START_NUM;
+  unsigned int DIZEL_STARTER_TIME;
+} EEPROMObj;
 
 
 byte rusLetterB[8]= {0x1F,0x11,0x10,0x1E,0x11,0x11,0x1E,0};//Р‘
@@ -40,20 +45,20 @@ byte rusLetterYA[8]= {0x0F,0x11,0x11,0x0F,0x05,0x09,0x11,0};//РЇ
 byte start_err_notification=0;
 byte f_force_osnovnaya_fail=0;
 
-int getKey() {
-  int x = analogRead (0);
-  if (x < 60) {
-    return 3;
+byte getKey() {
+  short x = analogRead (0);
+  if (x < 100) {
+    return 1; //0-100 RIGHT
   } else if (x < 200) {
-    return 5;
+    return 2; //100-200 UP
   } else if (x < 400){
-    return 7;
+    return 3; //200-400 DOWN
   } else if (x < 600){
-    return 9;
+    return 4; //400-600 LEFT
   } else if (x < 800){
-    return 11;
+    return 5; //600-800 SELECT
   }
-  return 15;
+  return 0;
 }
 
 void GetCurrInfo(String *text){
@@ -119,6 +124,10 @@ void setup() {
   pinMode(GENERATOR_ON,OUTPUT);
   pinMode(GENERATOR_OFF,OUTPUT);
   pinMode(GENERATOR_SWCH,OUTPUT);
+
+  EEPROM.get(0,EEPROMObj);
+  DIZEL_STARTER_TIME=EEPROMObj.DIZEL_STARTER_TIME;
+  START_NUM=EEPROMObj.START_NUM;
   
   pins_init();
   //delay(1000);
@@ -130,7 +139,6 @@ void setup() {
 #endif
 
   ClearSerial();
-  dht.begin();
   
   //pinMode(0,INPUT_PULLUP);
   //pinMode(1,INPUT_PULLUP);
@@ -175,9 +183,29 @@ void setup() {
 }
 
 byte heartbeat=0;
+byte key=0;
 
 void loop() {
+  lcd.clear();
   wdt_reset();
+  key=getKey();
+  if(key==5 && menuactive==false) {
+    menuactive=true;
+  }else if(key==5 && menuactive==true) {
+    menuactive=false;
+    EEPROMObj.DIZEL_STARTER_TIME=DIZEL_STARTER_TIME;
+    EEPROMObj.START_NUM=START_NUM;
+    EEPROM.put(0,EEPROMObj);
+  }
+  
+  
+  if(menuactive) {
+    menuprocess(key);
+    menuprint();
+    delay (500);
+    return;
+  }
+  
   lcd.setCursor(0, 0);
   lcd.print("KL1=");lcd.print(digitalRead(OSNOVNAYA)); 
 
@@ -191,11 +219,7 @@ void loop() {
   }
   
   lcd.setCursor(14, 0);
-  DIZEL_STARTER_TIME=getKey();
-  lcd.print("  ");
-  lcd.setCursor(14, 0);
-  lcd.print(DIZEL_STARTER_TIME);
-  DIZEL_STARTER_TIME*=1000;
+  lcd.print(getKey());
   
   ProcessFunc();
   printCurState();
@@ -208,7 +232,7 @@ void timer_handle_interrupts(int timer) {
 #ifdef GSMMODULE
     gprsupdcnt++;
     if(gprsupdcnt>50) {
-      gprsupddata(curr_state,dht.readTemperature(),dht.readHumidity(),gprsupdcnt-50);
+      gprsupddata(curr_state,0,0,gprsupdcnt-50);
     }
     if(gprsupdcnt>60)gprsupdcnt=0;
 #endif
