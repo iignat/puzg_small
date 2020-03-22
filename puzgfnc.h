@@ -38,13 +38,15 @@
 //#define START_NUM                    10
 #define FORCE_OSNOVNAYA_SHTD_CNT     3
 #define FORCE_GENERATOR_START_CNT    5
-#define OSTANOV_GENERATORA1_CNT      30
-#define OSTANOV_GENERATORA2_CNT      60
+//#define OSTANOV_GENERATORA1_CNT      30
+//#define OSTANOV_GENERATORA2_CNT      60
 //#define DIZEL_STARTER_TIME           3000 //ms
+//#define OSNOVNAYA_GENERATOR_SWH_DELAY  10000 //ms
+extern uint16_t OSTANOV_GENERATORA1_CNT;
+extern uint16_t OSTANOV_GENERATORA2_CNT;
 extern unsigned int DIZEL_STARTER_TIME; //ms
 extern uint8_t START_NUM;
-#define OSNOVNAYA_GENERATOR_SWH_DELAY  10000 //ms
-
+extern unsigned int OSNOVNAYA_GENERATOR_SWH_DELAY;
 extern uint8_t starts_try_num;
 
 extern uint8_t curr_state;

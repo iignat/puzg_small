@@ -7,6 +7,9 @@
 
 unsigned int DIZEL_STARTER_TIME = 3000; //ms
 uint8_t START_NUM =10;
+uint16_t OSTANOV_GENERATORA1_CNT=30;
+uint16_t OSTANOV_GENERATORA2_CNT=60;
+unsigned int OSNOVNAYA_GENERATOR_SWH_DELAY=10000;//ms
 
 byte curr_state=UNDEF_STATE;
 byte zapusk_delay=0;

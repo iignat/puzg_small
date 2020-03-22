@@ -20,8 +20,11 @@ short gprsupdcnt=0;
 struct EEPROMObj_t{
   uint8_t START_NUM;
   unsigned int DIZEL_STARTER_TIME;
+  uint16_t OSTANOV_GENERATORA1_CNT;
+  uint16_t OSTANOV_GENERATORA2_CNT;
+  unsigned int OSNOVNAYA_GENERATOR_SWH_DELAY;
 } EEPROMObj;
-
+unsigned int actconfidx;
 
 byte rusLetterB[8]= {0x1F,0x11,0x10,0x1E,0x11,0x11,0x1E,0};//Р‘
 //byte rusLetterG[8]= {0x1F,0x11,0x10,0x10,0x10,0x10,0x10,0};//Р“
@@ -31,7 +34,7 @@ byte rusLetterI[8]= {0x11,0x11,0x13,0x15,0x19,0x11,0x11,0};//Р�
 //byte rusLetterIY[8]= {0x0A,0x15,0x13,0x15,0x19,0x11,0x11,0};//Р™
 byte rusLetterL[8]= {0x0F,0x05,0x05,0x05,0x05,0x15,0x09,0}; //Р›
 byte rusLetterP[8]= {0x1F,0x11,0x11,0x11,0x11,0x11,0x11,0};//Рџ
-//byte rusLetterF[8]= {0x04,0x0E,0x15,0x15,0x15,0x0E,0x04,0};//Р¤
+byte rusLetterF[8]= {0x04,0x0E,0x15,0x15,0x15,0x0E,0x04,0};//Р¤
 //byte rusLetterC[8]= {0x11,0x11,0x11,0x11,0x11,0x11,0x1F,1};//Р¦
 //byte rusLetterCH[8]= {0x11,0x11,0x11,0x0F,0x01,0x01,0x01,0};//Р§
 byte rusLetterSH[8]= {0x15,0x15,0x15,0x15,0x15,0x15,0x1F,0};//РЁ
@@ -59,6 +62,24 @@ byte getKey() {
     return 5; //600-800 SELECT
   }
   return 0;
+}
+
+bool isacchanged(unsigned int idx){
+  unsigned int e_idx;
+  EEPROM.get(0,e_idx);
+  if(e_idx!=idx)return true;
+  return false;
+}
+
+bool isnewconfig(unsigned int idx){
+  EEPROMObj_t o1;
+  uint8_t i=0;
+  EEPROM.get(sizeof(idx)+sizeof(o1)*idx,o1);
+
+  for(i=0;i<sizeof(o1);i++){
+    if( ((uint8_t *)&o1)[i]!=255)return false;
+  }
+  return true;
 }
 
 void GetCurrInfo(String *text){
@@ -125,9 +146,14 @@ void setup() {
   pinMode(GENERATOR_OFF,OUTPUT);
   pinMode(GENERATOR_SWCH,OUTPUT);
 
-  EEPROM.get(0,EEPROMObj);
+  
+  EEPROM.get(0,actconfidx);
+  EEPROM.get(sizeof(actconfidx)+sizeof(EEPROMObj)*actconfidx,EEPROMObj);
   DIZEL_STARTER_TIME=EEPROMObj.DIZEL_STARTER_TIME;
   START_NUM=EEPROMObj.START_NUM;
+  OSTANOV_GENERATORA1_CNT=EEPROMObj.OSTANOV_GENERATORA1_CNT;
+  OSTANOV_GENERATORA2_CNT=EEPROMObj.OSTANOV_GENERATORA2_CNT;
+  OSNOVNAYA_GENERATOR_SWH_DELAY=EEPROMObj.OSNOVNAYA_GENERATOR_SWH_DELAY;
   
   pins_init();
   //delay(1000);
@@ -168,6 +194,7 @@ void setup() {
   lcd.createChar(4, rusLetterP);
   lcd.createChar(5, rusLetterYA);
   lcd.createChar(6, rusLetterGH);
+  lcd.createChar(7, rusLetterF);
   
   lcd.clear();
   for(int i=0;i<10;i++){
@@ -184,6 +211,7 @@ void setup() {
 
 byte heartbeat=0;
 byte key=0;
+byte menutime=0;
 
 void loop() {
   lcd.clear();
@@ -191,36 +219,70 @@ void loop() {
   key=getKey();
   if(key==5 && menuactive==false) {
     menuactive=true;
+    menutime=0;
   }else if(key==5 && menuactive==true) {
     menuactive=false;
-    EEPROMObj.DIZEL_STARTER_TIME=DIZEL_STARTER_TIME;
-    EEPROMObj.START_NUM=START_NUM;
-    EEPROM.put(0,EEPROMObj);
+    if (isacchanged(actconfidx)) {
+      EEPROM.put(0,actconfidx);
+      if(isnewconfig(actconfidx)){
+        EEPROMObj.DIZEL_STARTER_TIME=DIZEL_STARTER_TIME;
+        EEPROMObj.START_NUM=START_NUM;
+        EEPROMObj.OSTANOV_GENERATORA1_CNT=OSTANOV_GENERATORA1_CNT;
+        EEPROMObj.OSTANOV_GENERATORA2_CNT=OSTANOV_GENERATORA2_CNT;
+        EEPROMObj.OSNOVNAYA_GENERATOR_SWH_DELAY=OSNOVNAYA_GENERATOR_SWH_DELAY;
+        EEPROM.put(sizeof(actconfidx)+sizeof(EEPROMObj)*actconfidx,EEPROMObj);
+      }else {
+          EEPROM.get(sizeof(actconfidx)+sizeof(EEPROMObj)*actconfidx,EEPROMObj);
+          DIZEL_STARTER_TIME=EEPROMObj.DIZEL_STARTER_TIME;
+          START_NUM=EEPROMObj.START_NUM;
+          OSTANOV_GENERATORA1_CNT=EEPROMObj.OSTANOV_GENERATORA1_CNT;
+          OSTANOV_GENERATORA2_CNT=EEPROMObj.OSTANOV_GENERATORA2_CNT;
+          OSNOVNAYA_GENERATOR_SWH_DELAY=EEPROMObj.OSNOVNAYA_GENERATOR_SWH_DELAY;  
+      }      
+    }else {
+      EEPROMObj.DIZEL_STARTER_TIME=DIZEL_STARTER_TIME;
+      EEPROMObj.START_NUM=START_NUM;
+      EEPROMObj.OSTANOV_GENERATORA1_CNT=OSTANOV_GENERATORA1_CNT;
+      EEPROMObj.OSTANOV_GENERATORA2_CNT=OSTANOV_GENERATORA2_CNT;
+      EEPROMObj.OSNOVNAYA_GENERATOR_SWH_DELAY=OSNOVNAYA_GENERATOR_SWH_DELAY;
+      EEPROM.put(sizeof(actconfidx)+sizeof(EEPROMObj)*actconfidx,EEPROMObj);
+    }
   }
   
   
   if(menuactive) {
     menuprocess(key);
     menuprint();
+    if(key==0)menutime++; else menutime=0;    
+    if(menutime>30){
+      menuactive=false;
+      EEPROM.get(0,actconfidx);
+      EEPROM.get(sizeof(actconfidx)+sizeof(EEPROMObj)*actconfidx,EEPROMObj);
+      DIZEL_STARTER_TIME=EEPROMObj.DIZEL_STARTER_TIME;
+      START_NUM=EEPROMObj.START_NUM;
+      OSTANOV_GENERATORA1_CNT=EEPROMObj.OSTANOV_GENERATORA1_CNT;
+      OSTANOV_GENERATORA2_CNT=EEPROMObj.OSTANOV_GENERATORA2_CNT;
+      OSNOVNAYA_GENERATOR_SWH_DELAY=EEPROMObj.OSNOVNAYA_GENERATOR_SWH_DELAY;
+    }
     delay (500);
     return;
   }
   
   lcd.setCursor(0, 0);
-  lcd.print("KL1=");lcd.print(digitalRead(OSNOVNAYA)); 
-
-  lcd.setCursor(5, 0);
-  lcd.print("  KL2=");lcd.print(digitalRead(GENERATOR)); 
+  //lcd.print("KL1=");lcd.print(digitalRead(OSNOVNAYA)); 
+  lcd.print("213B");lcd.print(" 48Hz");
+  //lcd.setCursor(5, 0);
+  //lcd.print("  KL2=");lcd.print(digitalRead(GENERATOR)); 
+  lcd.setCursor(10, 0);
+  if(digitalRead(OSNOVNAYA)==1)lcd.print("+");else lcd.print("-"); 
+  if(digitalRead(GENERATOR)==1)lcd.print("+");else lcd.print("-");
   
   lcd.setCursor(13, 0);
   switch(heartbeat){
     case 0:lcd.print(" ");heartbeat++;break;
     case 1:lcd.print("*");heartbeat=0;break;
   }
-  
-  lcd.setCursor(14, 0);
-  lcd.print(getKey());
-  
+    
   ProcessFunc();
   printCurState();
   
