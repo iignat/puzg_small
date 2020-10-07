@@ -7,14 +7,23 @@
 #include "gprsfnc.h"
 #include "timer-api.h"
 #include "menuproc.h"
+#include "sigproc.h"
 #include <EEPROM.h>
 
 //#define GSMMODULE 1
-
+#define SIG_LEN 100
 
 //LiquidCrystal lcd(3, 2, 28, 27, 26, 25);
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
-SoftwareSerial gsm(A5, A4); // RX, TX
+SoftwareSerial gsm(0, 1); // RX, TX
+
+unsigned short a1=0,a2=0,a3=0;
+float v_max=0;
+byte sig_arr_flag=0;
+unsigned long start_time = 0;
+unsigned long end_time = 0;
+float Ak=0,Bk=0,Ck=0;
+
 short gprsupdcnt=0;
 
 struct EEPROMObj_t{
@@ -25,6 +34,9 @@ struct EEPROMObj_t{
   unsigned int OSNOVNAYA_GENERATOR_SWH_DELAY;
 } EEPROMObj;
 unsigned int actconfidx;
+
+unsigned Vin=0;
+unsigned HZin=0;
 
 byte rusLetterB[8]= {0x1F,0x11,0x10,0x1E,0x11,0x11,0x1E,0};//Р‘
 //byte rusLetterG[8]= {0x1F,0x11,0x10,0x10,0x10,0x10,0x10,0};//Р“
@@ -135,8 +147,31 @@ void printCurState() {
 }
 
 void setup() {
+
+  float x1=745.0;
+  float y1=250.0;
+
+  float x2=700.0;
+  float y2=200.0;
+
+  float x3=651.0;
+  float y3=150.0;
+  
+  //float x2=720.0;
+  //float y2=220.0;
+
+  //float x3=700.0;
+  //float y3=200.0;
+
+  float d=det(x1*x1,x1,1,x2*x2,x2,1,x3*x3,x3,1);
+
+  Ak=det(y1,x1,1,y2,x2,1,y3,x3,1)/d;
+  Bk=det(x1*x1,y1,1,x2*x2,y2,1,x3*x3,y3,1)/d;
+  Ck=det(x1*x1,x1,y1,x2*x2,x2,y2,x3*x3,x3,y3)/d;
+  
   // set up the LCD's number of columns and rows:
   pinMode(A0,INPUT);
+  pinMode(A1,INPUT);
   pinMode(OSNOVNAYA,INPUT);
   pinMode(GENERATOR,INPUT);
   
@@ -203,17 +238,35 @@ void setup() {
     delay(100);
   }
   wdt_enable(WDTO_8S);
-#ifdef GSMMODULE  
-  timer_init_ISR_1Hz(TIMER_DEFAULT);
-#endif
+  timer_init_ISR_1KHz(_TIMER1);
 
 }
 
 byte heartbeat=0;
 byte key=0;
 byte menutime=0;
+byte sig_meg_count=0;
+byte sig_meg_HZ=0;
 
 void loop() {
+
+//================================= sig process =======================================
+if(sig_arr_flag==2){
+    HZin=1000000.00/(float)(end_time-start_time);
+    Vin=Ak*v_max*v_max+Bk*v_max+Ck;
+    //for (int i=0;i<SIG_LEN;i++)Serial.println(sig_arr[i]);
+    sig_arr_flag++;
+} else if(sig_arr_flag==3){
+    Serial.print("Hz=");Serial.println(HZin);
+    Serial.print("V=");Serial.println(Vin);
+    Serial.print("Vsrc=");Serial.println(v_max);
+    Serial.print("T=");Serial.println((end_time-start_time));
+    
+    sig_arr_flag=0;
+}
+
+//================================= end sig process ===================================
+  
   lcd.clear();
   wdt_reset();
   key=getKey();
@@ -270,7 +323,12 @@ void loop() {
   
   lcd.setCursor(0, 0);
   //lcd.print("KL1=");lcd.print(digitalRead(OSNOVNAYA)); 
-  lcd.print("213B");lcd.print(" 48Hz");
+  if(v_max<520 || v_max>800){
+    lcd.print("H");lcd.write(byte(1));lcd.print("3K.HA");lcd.write(byte(4));lcd.print("P.");
+  }
+  else {
+    lcd.print(Vin);lcd.print("B ");lcd.print(HZin);lcd.print("Hz ");
+  }
   //lcd.setCursor(5, 0);
   //lcd.print("  KL2=");lcd.print(digitalRead(GENERATOR)); 
   lcd.setCursor(10, 0);
@@ -290,6 +348,13 @@ void loop() {
    
 }
 
+
+//static unsigned long prev_time = 0;
+//static unsigned long hz=0;
+//static unsigned long vz=0; 
+//static unsigned long prev_val = 0;
+//static unsigned long _time=0;
+
 void timer_handle_interrupts(int timer) {
 #ifdef GSMMODULE
     gprsupdcnt++;
@@ -297,5 +362,43 @@ void timer_handle_interrupts(int timer) {
       gprsupddata(curr_state,0,0,gprsupdcnt-50);
     }
     if(gprsupdcnt>60)gprsupdcnt=0;
-#endif
+#endif    
+
+/*    unsigned int val=analogRead(1);
+    _time = micros();
+    
+    if((val-prev_val)<=2  && (val-prev_val)>0 && val>100) {
+      
+      //Vin=abs((int)(((float)(val))*0.488281));
+      //Vin=abs((int)(((float)(val))*0.3));
+      //Vin=val;
+      hz++;
+      vz=vz+val;
+    }
+    
+    if(_time-prev_time>=30000000L){
+          HZin=hz/60;
+          Vin=abs((int)(((float)(vz/hz))*250.0/1024.0));
+          hz=0;
+          vz=0;
+          prev_time=_time;
+    }       
+    prev_val=val;*/
+    a1=a2;
+    a2=a3;
+    a3=analogRead(1);
+    
+    if(sig_arr_flag==0){
+      if(a1<a2 && a2>=a3) {
+           start_time=micros();
+           sig_arr_flag++;
+           v_max=a2;
+      }
+    }else if(sig_arr_flag==1) {
+      if(a1<a2 && a2>=a3) {
+           end_time=micros();
+           sig_arr_flag++;
+           v_max=a2;
+      }
+    }
 }
