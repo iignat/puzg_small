@@ -19,7 +19,7 @@ SoftwareSerial gsm(0, 1); // RX, TX
 
 float Vavg=0;
 float Havg=0;
-byte avgidx=0;
+unsigned short avgidx=0;
 
 unsigned short a1=0,a2=0,a3=0;
 float v_max=0;
